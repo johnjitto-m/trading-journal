@@ -9,3 +9,8 @@ Professional browser-based trading journal for HTF FVG → CISD → LTF executio
 - Added `#` column to Weekly Journal and Research Journal so trades are easy to read as 1, 2, 3, 4.
 - Preserves `createdAt` and `updatedAt` timestamps for stable order and edit tracking.
 - Keeps v19 features: day-month-year dates, Research sort dropdown, `Next Candle Mitigation`, clean dashboard, Add Trade modal, View Trade modal, Delete modal, Supabase cloud sync, and simple Trade Status tracking.
+
+
+## Version 21
+
+Elegant UI polish: refined dashboard spacing, equal stat cards, cleaner table rows, consistent buttons/badges, premium modal surfaces, and improved mobile responsiveness.
