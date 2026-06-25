@@ -43,12 +43,17 @@ const emptyState = document.querySelector('#emptyState');
 const researchTableBody = document.querySelector('#researchTradesTable');
 const researchEmptyState = document.querySelector('#researchEmptyState');
 const searchInput = document.querySelector('#searchInput');
+const directionFilter = document.querySelector('#directionFilter');
 const pairFilter = document.querySelector('#pairFilter');
 const resultFilter = document.querySelector('#resultFilter');
 const sessionFilter = document.querySelector('#sessionFilter');
 const htfFilter = document.querySelector('#htfFilter');
 const fvgFilter = document.querySelector('#fvgFilter');
 const cisdFilter = document.querySelector('#cisdFilter');
+const fvgLocationFilter = document.querySelector('#fvgLocationFilter');
+const mitigationFilter = document.querySelector('#mitigationFilter');
+const entryLevelFilter = document.querySelector('#entryLevelFilter');
+const beLogicFilter = document.querySelector('#beLogicFilter');
 const dateFromFilter = document.querySelector('#dateFromFilter');
 const dateToFilter = document.querySelector('#dateToFilter');
 const clearResearchFiltersBtn = document.querySelector('#clearResearchFiltersBtn');
@@ -139,6 +144,17 @@ const deleteModal = {
   confirmBtn: document.querySelector('#confirmDeleteBtn'),
 };
 
+const detailsModal = {
+  root: document.querySelector('#tradeDetailsModal'),
+  title: document.querySelector('#detailsTradeTitle'),
+  subtitle: document.querySelector('#detailsTradeSubtitle'),
+  body: document.querySelector('#tradeDetailsBody'),
+  closeBtn: document.querySelector('#detailsModalCloseBtn'),
+  closeFooterBtn: document.querySelector('#detailsCloseBtn'),
+  editBtn: document.querySelector('#detailsEditBtn'),
+  deleteBtn: document.querySelector('#detailsDeleteBtn'),
+};
+
 let uploadedImages = { htf: '', ltf: '' };
 let chartLinks = clone(defaultChartLinks);
 let activeChartIndex = { htf: 0, ltf: 0 };
@@ -148,6 +164,7 @@ let currentUser = null;
 let cloudReady = false;
 let cloudBusy = false;
 let pendingDeleteId = null;
+let activeDetailsId = null;
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
@@ -762,22 +779,32 @@ function getCurrentWeekTrades() {
 
 function getFilteredTrades() {
   const query = searchInput?.value.trim().toLowerCase() || '';
+  const direction = directionFilter?.value || 'All';
   const pair = pairFilter?.value || 'All';
   const result = resultFilter?.value || 'All';
   const session = sessionFilter?.value || 'All';
   const htf = htfFilter?.value || 'All';
   const fvg = fvgFilter?.value || 'All';
   const cisd = cisdFilter?.value || 'All';
+  const fvgLocation = fvgLocationFilter?.value || 'All';
+  const mitigation = mitigationFilter?.value || 'All';
+  const entryLevel = entryLevelFilter?.value || 'All';
+  const beLogic = beLogicFilter?.value || 'All';
   const dateFrom = dateFromFilter?.value || '';
   const dateTo = dateToFilter?.value || '';
 
   return trades
+    .filter((trade) => (direction === 'All' ? true : trade.direction === direction))
     .filter((trade) => (pair === 'All' ? true : trade.pair === pair))
     .filter((trade) => (result === 'All' ? true : trade.result === result))
     .filter((trade) => (session === 'All' ? true : trade.session === session))
     .filter((trade) => (htf === 'All' ? true : trade.htfTimeframe === htf))
     .filter((trade) => (fvg === 'All' ? true : trade.fvgOrder === fvg))
     .filter((trade) => (cisd === 'All' ? true : trade.cisdType === cisd))
+    .filter((trade) => (fvgLocation === 'All' ? true : trade.fvgLocation === fvgLocation))
+    .filter((trade) => (mitigation === 'All' ? true : (trade.htfRetracementTags || []).includes(mitigation)))
+    .filter((trade) => (entryLevel === 'All' ? true : (trade.ltfEntryLevelTags || []).includes(entryLevel)))
+    .filter((trade) => (beLogic === 'All' ? true : (trade.beLogic || 'None') === beLogic))
     .filter((trade) => (dateFrom ? trade.date >= dateFrom : true))
     .filter((trade) => (dateTo ? trade.date <= dateTo : true))
     .filter((trade) => {
@@ -828,15 +855,26 @@ function renderStats(list = trades, target = stats) {
   target.avgRR.textContent = `${avgRR.toFixed(2)}R`;
 }
 
+function isWin(trade) {
+  return trade.result === 'TP' || trade.result === 'Win';
+}
+
+function isLoss(trade) {
+  return trade.result === 'SL' || trade.result === 'Loss';
+}
+
 function summarizeBy(fieldName, list = trades) {
   const groups = new Map();
   list.forEach((trade) => {
-    const values = Array.isArray(trade[fieldName]) ? trade[fieldName] : [trade[fieldName] || 'Not tagged'];
+    const rawValues = Array.isArray(trade[fieldName]) ? trade[fieldName] : [trade[fieldName]];
+    const values = rawValues.filter(Boolean).length ? rawValues.filter(Boolean) : ['Not tagged'];
     values.forEach((key) => {
-      const current = groups.get(key) || { total: 0, wins: 0, losses: 0 };
+      const current = groups.get(key) || { total: 0, wins: 0, losses: 0, be: 0, pnl: 0 };
       current.total += 1;
-      if (trade.result === 'TP' || trade.result === 'Win') current.wins += 1;
-      if (trade.result === 'SL' || trade.result === 'Loss') current.losses += 1;
+      if (isWin(trade)) current.wins += 1;
+      if (isLoss(trade)) current.losses += 1;
+      if (trade.result === 'BE') current.be += 1;
+      current.pnl += calculatePnL(trade);
       groups.set(key, current);
     });
   });
@@ -847,7 +885,83 @@ function summarizeBy(fieldName, list = trades) {
       ...item,
       winRate: item.wins + item.losses ? (item.wins / (item.wins + item.losses)) * 100 : 0,
     }))
-    .sort((a, b) => b.winRate - a.winRate || b.total - a.total);
+    .sort((a, b) => b.winRate - a.winRate || b.total - a.total || b.pnl - a.pnl);
+}
+
+function getSimilarityItems(list, resultType) {
+  const filtered = list.filter((trade) => (resultType === 'win' ? isWin(trade) : isLoss(trade)));
+  const total = filtered.length;
+  if (!total) return [];
+
+  const fieldsToCheck = [
+    { label: 'FVG order', field: 'fvgOrder' },
+    { label: 'CISD type', field: 'cisdType' },
+    { label: 'FVG location', field: 'fvgLocation' },
+    { label: 'Mitigation', field: 'htfRetracementTags' },
+    { label: 'Entry level', field: 'ltfEntryLevelTags' },
+    { label: 'BE logic', field: 'beLogic' },
+    { label: 'Session', field: 'session' },
+    { label: 'Pair', field: 'pair' },
+    { label: 'Direction', field: 'direction' },
+    { label: 'HTF', field: 'htfTimeframe' },
+  ];
+
+  return fieldsToCheck
+    .map(({ label, field }) => {
+      const top = summarizeBy(field, filtered).filter((item) => item.key !== 'Not tagged')[0];
+      if (!top) return null;
+      return {
+        label,
+        value: top.key,
+        total: top.total,
+        pct: total ? (top.total / total) * 100 : 0,
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.pct - a.pct || b.total - a.total)
+    .slice(0, 5);
+}
+
+function renderSimilarityCard(title, list, resultType) {
+  const items = getSimilarityItems(list, resultType);
+  const count = list.filter((trade) => (resultType === 'win' ? isWin(trade) : isLoss(trade))).length;
+  const tone = resultType === 'win' ? 'winning' : 'losing';
+
+  if (!count) {
+    return `<article class="edge-card similarity-card ${tone}"><span>${title}</span><strong>No ${resultType === 'win' ? 'TP' : 'SL'} trades yet</strong><small>More trades are needed to detect similarities.</small></article>`;
+  }
+
+  return `
+    <article class="edge-card similarity-card ${tone}">
+      <span>${title}</span>
+      <strong>${count} ${resultType === 'win' ? 'TP' : 'SL'} trade${count === 1 ? '' : 's'}</strong>
+      <ul>
+        ${items.map((item) => `<li><b>${item.pct.toFixed(0)}%</b> ${escapeHtml(item.label)}: ${escapeHtml(item.value)}</li>`).join('')}
+      </ul>
+    </article>
+  `;
+}
+
+function getBestAndWorst(fieldName, list) {
+  const items = summarizeBy(fieldName, list).filter((item) => item.key !== 'Not tagged' && item.total > 0);
+  if (!items.length) return { best: null, worst: null };
+  const meaningful = items.filter((item) => item.wins + item.losses > 0);
+  const source = meaningful.length ? meaningful : items;
+  const best = [...source].sort((a, b) => b.winRate - a.winRate || b.pnl - a.pnl || b.total - a.total)[0];
+  const worst = [...source].sort((a, b) => a.winRate - b.winRate || a.pnl - b.pnl || b.total - a.total)[0];
+  return { best, worst };
+}
+
+function renderConditionCard(title, item, mode = 'best') {
+  if (!item) return `<article class="edge-card condition-card"><span>${title}</span><strong>-</strong><small>No tagged data yet.</small></article>`;
+  const klass = mode === 'worst' ? 'worst' : 'best';
+  return `
+    <article class="edge-card condition-card ${klass}">
+      <span>${title}</span>
+      <strong>${escapeHtml(item.key)}</strong>
+      <small>${item.total} trade${item.total === 1 ? '' : 's'} · ${item.winRate.toFixed(1)}% win rate · ${money(item.pnl)} P/L</small>
+    </article>
+  `;
 }
 
 function renderEdgeSummary(list = trades, target = edgeSummary) {
@@ -862,26 +976,25 @@ function renderEdgeSummary(list = trades, target = edgeSummary) {
     return;
   }
 
-  const fvg = summarizeBy('fvgOrder', list)[0];
-  const retracement = summarizeBy('htfRetracementTags', list)[0];
-  const be = summarizeBy('beLogic', list)[0];
+  const cisd = getBestAndWorst('cisdType', list);
+  const fvgOrder = getBestAndWorst('fvgOrder', list);
+  const fvgLocation = getBestAndWorst('fvgLocation', list);
+  const mitigation = getBestAndWorst('htfRetracementTags', list);
+  const entry = getBestAndWorst('ltfEntryLevelTags', list);
+  const be = getBestAndWorst('beLogic', list);
 
   target.innerHTML = [
-    buildEdgeCard('Best FVG Order', fvg),
-    buildEdgeCard('Best Mitigation Tag', retracement),
-    buildEdgeCard('Best BE Logic', be),
+    renderSimilarityCard('Winning Trade Similarities', list, 'win'),
+    renderSimilarityCard('Losing Trade Similarities', list, 'loss'),
+    renderConditionCard('Best CISD Type', cisd.best, 'best'),
+    renderConditionCard('Worst CISD Type', cisd.worst, 'worst'),
+    renderConditionCard('Best FVG Order', fvgOrder.best, 'best'),
+    renderConditionCard('Best FVG Location', fvgLocation.best, 'best'),
+    renderConditionCard('Best Mitigation Tag', mitigation.best, 'best'),
+    renderConditionCard('Worst Mitigation Tag', mitigation.worst, 'worst'),
+    renderConditionCard('Best Entry Level', entry.best, 'best'),
+    renderConditionCard('Best BE Logic', be.best, 'best'),
   ].join('');
-}
-
-function buildEdgeCard(title, item) {
-  if (!item) return `<article class="edge-card"><span>${title}</span><strong>-</strong><small>No data yet.</small></article>`;
-  return `
-    <article class="edge-card">
-      <span>${title}</span>
-      <strong>${escapeHtml(item.key)}</strong>
-      <small>${item.total} trade${item.total === 1 ? '' : 's'} · ${item.winRate.toFixed(1)}% win rate</small>
-    </article>
-  `;
 }
 
 function renderTradeRows(list, targetBody, targetEmpty) {
@@ -891,38 +1004,18 @@ function renderTradeRows(list, targetBody, targetEmpty) {
 
   list.forEach((trade) => {
     const row = rowTemplate.content.cloneNode(true);
-    const pnl = calculatePnL(trade);
-    const htfLinks = normalizeChartLinks(trade.htfChartLinks, 'htf');
-    const ltfLinks = normalizeChartLinks(trade.ltfChartLinks, 'ltf');
-    const htfFilledLinks = filledLinks(htfLinks);
-    const ltfFilledLinks = filledLinks(ltfLinks);
 
     row.querySelector('.date-cell').innerHTML = `${escapeHtml(trade.date)}<br><small>${escapeHtml(trade.day || getDayName(trade.date))}</small>`;
-    row.querySelector('.pair-cell').textContent = trade.pair;
-    row.querySelector('.direction-cell').textContent = trade.direction;
-    row.querySelector('.timeframe-cell').innerHTML = `${escapeHtml(trade.htfTimeframe || '-')} → ${escapeHtml(trade.ltfTimeframe || '-')}`;
-
-    row.querySelector('.pattern-cell').innerHTML = `
-      <div class="pattern-meta">
-        <strong>${escapeHtml(trade.fvgOrder || '-')}</strong>
-        <small>HTF: ${escapeHtml(trade.cisdType || '-')} · ${escapeHtml(trade.fvgLocation || '-')}</small>
-        <small>Mitigation: ${escapeHtml(shortList(trade.htfRetracementTags))}</small>
-        <small>Entry level: ${escapeHtml(shortList(trade.ltfEntryLevelTags))}</small>
-        <small>BE: ${escapeHtml(trade.beLogic || '-')}</small>
-        ${renderTradeChartLinks('HTF', htfFilledLinks)}
-        ${renderTradeChartLinks('LTF', ltfFilledLinks)}
-      </div>
-    `;
+    row.querySelector('.pair-cell').textContent = trade.pair || '-';
+    row.querySelector('.direction-cell').innerHTML = `<span class="direction-badge ${String(trade.direction || '').toLowerCase()}">${escapeHtml(trade.direction || '-')}</span>`;
+    row.querySelector('.setup-cell').textContent = trade.fvgOrder || '-';
+    row.querySelector('.cisd-cell').textContent = trade.cisdType || '-';
 
     const resultPill = row.querySelector('.result-pill');
-    resultPill.textContent = trade.result;
+    resultPill.textContent = trade.result || '-';
     resultPill.classList.add(`result-${getResultClass(trade.result)}`);
 
-    row.querySelector('.rr-cell').textContent = `${Number(trade.rr || 0).toFixed(2)}R`;
-    const pnlCell = row.querySelector('.pnl-cell');
-    pnlCell.textContent = money(pnl);
-    pnlCell.classList.add(pnl >= 0 ? 'pnl-positive' : 'pnl-negative');
-
+    row.querySelector('.view-btn').addEventListener('click', () => viewTrade(trade.id));
     row.querySelector('.edit-btn').addEventListener('click', () => editTrade(trade.id));
     row.querySelector('.delete-btn').addEventListener('click', () => deleteTrade(trade.id));
 
@@ -967,7 +1060,7 @@ function setAppView(view) {
 
 function clearResearchFilters() {
   if (searchInput) searchInput.value = '';
-  [pairFilter, resultFilter, sessionFilter, htfFilter, fvgFilter, cisdFilter].forEach((filter) => {
+  [directionFilter, pairFilter, resultFilter, sessionFilter, htfFilter, fvgFilter, cisdFilter, fvgLocationFilter, mitigationFilter, entryLevelFilter, beLogicFilter].forEach((filter) => {
     if (filter) filter.value = 'All';
   });
   if (dateFromFilter) dateFromFilter.value = '';
@@ -1085,6 +1178,126 @@ function getFormTrade() {
     notes: fields.notes.value.trim(),
     updatedAt: new Date().toISOString(),
   };
+}
+
+
+function viewTrade(id) {
+  const trade = trades.find((item) => item.id === id);
+  if (!trade || !detailsModal.root) return;
+
+  activeDetailsId = id;
+  const pnl = calculatePnL(trade);
+  if (detailsModal.title) detailsModal.title.textContent = `${trade.pair || '-'} ${trade.direction || ''}`.trim();
+  if (detailsModal.subtitle) {
+    detailsModal.subtitle.textContent = `${trade.date || '-'} · ${trade.day || getDayName(trade.date)} · ${trade.session || '-'} · ${trade.htfTimeframe || '-'} → ${trade.ltfTimeframe || '-'}`;
+  }
+  if (detailsModal.body) detailsModal.body.innerHTML = buildTradeDetails(trade, pnl);
+
+  detailsModal.root.hidden = false;
+  detailsModal.root.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('details-modal-open');
+}
+
+function closeTradeDetails() {
+  if (!detailsModal.root) return;
+  activeDetailsId = null;
+  detailsModal.root.hidden = true;
+  detailsModal.root.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('details-modal-open');
+}
+
+function buildTradeDetails(trade, pnl) {
+  const htfLinks = filledLinks(normalizeChartLinks(trade.htfChartLinks, 'htf'));
+  const ltfLinks = filledLinks(normalizeChartLinks(trade.ltfChartLinks, 'ltf'));
+  return `
+    <section class="details-overview-grid">
+      ${detailMetric('Result', `<span class="result-pill result-${getResultClass(trade.result)}">${escapeHtml(trade.result || '-')}</span>`, true)}
+      ${detailMetric('Risk', `$${Number(trade.risk || 0).toFixed(2)}`)}
+      ${detailMetric('RR', `${Number(trade.rr || 0).toFixed(2)}R`)}
+      ${detailMetric('P/L', `<span class="${pnl >= 0 ? 'pnl-positive' : 'pnl-negative'}">${money(pnl)}</span>`, true)}
+    </section>
+
+    <section class="details-section">
+      <div class="details-section-head">
+        <p class="section-kicker">Basic Info</p>
+        <h3>Trade Context</h3>
+      </div>
+      <div class="details-grid">
+        ${detailItem('Date', `${trade.date || '-'} · ${trade.day || getDayName(trade.date)}`)}
+        ${detailItem('Pair', trade.pair || '-')}
+        ${detailItem('Direction', trade.direction || '-')}
+        ${detailItem('Session', trade.session || '-')}
+        ${detailItem('HTF', trade.htfTimeframe || '-')}
+        ${detailItem('Auto LTF', trade.ltfTimeframe || '-')}
+      </div>
+    </section>
+
+    <section class="details-section">
+      <div class="details-section-head">
+        <p class="section-kicker">HTF Analysis</p>
+        <h3>FVG POI</h3>
+      </div>
+      <div class="details-grid">
+        ${detailItem('FVG Order', trade.fvgOrder || '-')}
+        ${detailItem('CISD Type', trade.cisdType || '-')}
+        ${detailItem('FVG Location', trade.fvgLocation || '-')}
+        ${detailItem('Mitigation / Retracement', renderTagList(trade.htfRetracementTags), true)}
+      </div>
+      ${trade.htfNotes ? `<div class="details-note"><span>HTF Notes</span><p>${escapeHtml(trade.htfNotes)}</p></div>` : ''}
+      ${renderDetailChartLinks('HTF Chart Links', htfLinks)}
+    </section>
+
+    <section class="details-section">
+      <div class="details-section-head">
+        <p class="section-kicker">LTF Analysis</p>
+        <h3>Execution</h3>
+      </div>
+      <div class="details-grid">
+        ${detailItem('Entry Level', renderTagList(trade.ltfEntryLevelTags), true)}
+        ${detailItem('BE Logic', trade.beLogic || '-')}
+      </div>
+      ${renderDetailChartLinks('LTF Chart Links', ltfLinks)}
+    </section>
+  `;
+}
+
+function detailMetric(label, value, raw = false) {
+  return `<article class="details-metric"><span>${escapeHtml(label)}</span><strong>${raw ? value : escapeHtml(value)}</strong></article>`;
+}
+
+function detailItem(label, value, raw = false) {
+  return `<div class="detail-item"><span>${escapeHtml(label)}</span><strong>${raw ? value : escapeHtml(value)}</strong></div>`;
+}
+
+function renderTagList(values = []) {
+  const list = Array.isArray(values) ? values.filter(Boolean) : [values].filter(Boolean);
+  if (!list.length) return '<em>-</em>';
+  return `<div class="detail-tags">${list.map((item) => `<span>${escapeHtml(item)}</span>`).join('')}</div>`;
+}
+
+function renderDetailChartLinks(title, links = []) {
+  if (!links.length) {
+    return `
+      <div class="details-links-block empty-links">
+        <span>${escapeHtml(title)}</span>
+        <p>No chart links saved.</p>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="details-links-block">
+      <span>${escapeHtml(title)}</span>
+      <div class="details-link-list">
+        ${links.map((item, index) => `
+          <a href="${escapeAttribute(item.url)}" target="_blank" rel="noreferrer">
+            <strong>${escapeHtml(item.label || `Chart ${index + 1}`)}</strong>
+            <small>${escapeHtml(item.url)}</small>
+          </a>
+        `).join('')}
+      </div>
+    </div>
+  `;
 }
 
 function editTrade(id) {
@@ -1433,12 +1646,17 @@ document.querySelector('#addLtfChartLinkBtn').addEventListener('click', () => ad
 wireNoneOption('htfRetracementTags');
 
 searchInput?.addEventListener('input', renderResearch);
+directionFilter?.addEventListener('change', renderResearch);
 pairFilter?.addEventListener('change', renderResearch);
 resultFilter?.addEventListener('change', renderResearch);
 sessionFilter?.addEventListener('change', renderResearch);
 htfFilter?.addEventListener('change', renderResearch);
 fvgFilter?.addEventListener('change', renderResearch);
 cisdFilter?.addEventListener('change', renderResearch);
+fvgLocationFilter?.addEventListener('change', renderResearch);
+mitigationFilter?.addEventListener('change', renderResearch);
+entryLevelFilter?.addEventListener('change', renderResearch);
+beLogicFilter?.addEventListener('change', renderResearch);
 dateFromFilter?.addEventListener('change', renderResearch);
 dateToFilter?.addEventListener('change', renderResearch);
 clearResearchFiltersBtn?.addEventListener('click', clearResearchFilters);
@@ -1449,6 +1667,22 @@ document.querySelector('#exportJsonBtn').addEventListener('click', exportJson);
 document.querySelector('#exportCsvBtn').addEventListener('click', exportCsv);
 document.querySelector('#importJsonInput').addEventListener('change', importJson);
 
+detailsModal.closeBtn?.addEventListener('click', closeTradeDetails);
+detailsModal.closeFooterBtn?.addEventListener('click', closeTradeDetails);
+detailsModal.editBtn?.addEventListener('click', () => {
+  const id = activeDetailsId;
+  closeTradeDetails();
+  if (id) editTrade(id);
+});
+detailsModal.deleteBtn?.addEventListener('click', () => {
+  const id = activeDetailsId;
+  closeTradeDetails();
+  if (id) deleteTrade(id);
+});
+detailsModal.root?.addEventListener('click', (event) => {
+  if (event.target?.matches?.('[data-details-close]')) closeTradeDetails();
+});
+
 deleteModal.closeBtn?.addEventListener('click', closeDeleteConfirm);
 deleteModal.cancelBtn?.addEventListener('click', closeDeleteConfirm);
 deleteModal.confirmBtn?.addEventListener('click', confirmDeleteTrade);
@@ -1456,7 +1690,9 @@ deleteModal.root?.addEventListener('click', (event) => {
   if (event.target?.matches?.('[data-delete-cancel]')) closeDeleteConfirm();
 });
 document.addEventListener('keydown', (event) => {
-  if (event.key === 'Escape' && deleteModal.root && !deleteModal.root.hidden) closeDeleteConfirm();
+  if (event.key !== 'Escape') return;
+  if (deleteModal.root && !deleteModal.root.hidden) closeDeleteConfirm();
+  if (detailsModal.root && !detailsModal.root.hidden) closeTradeDetails();
 });
 
 cloudUi.signInBtn?.addEventListener('click', signIn);

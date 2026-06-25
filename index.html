@@ -181,12 +181,10 @@
                 <tr>
                   <th>Date</th>
                   <th>Pair</th>
-                  <th>Dir</th>
-                  <th>HTF → LTF</th>
-                  <th>Setup Pattern</th>
+                  <th>Direction</th>
+                  <th>Setup</th>
+                  <th>CISD</th>
                   <th>Result</th>
-                  <th>RR</th>
-                  <th>P/L</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -249,6 +247,11 @@
 
           <div class="research-filters">
             <input id="searchInput" type="search" placeholder="Search pair, CISD, FVG, LTF tags, notes, chart label..." />
+            <select id="directionFilter">
+              <option value="All">All Directions</option>
+              <option value="Long">Long</option>
+              <option value="Short">Short</option>
+            </select>
             <select id="pairFilter">
               <option value="All">All Pairs</option>
               <option value="EURUSD">EURUSD</option>
@@ -291,6 +294,38 @@
               <option value="Messy CISD">Messy CISD</option>
               <option value="Irregular CISD">Irregular CISD</option>
             </select>
+            <select id="fvgLocationFilter">
+              <option value="All">All FVG Locations</option>
+              <option value="FVG inside CISD">FVG inside CISD</option>
+              <option value="FVG outside CISD">FVG outside CISD</option>
+            </select>
+            <select id="mitigationFilter">
+              <option value="All">All Mitigation Tags</option>
+              <option value="None">None</option>
+              <option value="Second FVG mitigation without failing the first FVG">Second FVG mitigation without failing the first FVG</option>
+              <option value="Second FVG mitigation after filling the first FVG">Second FVG mitigation after filling the first FVG</option>
+              <option value="Coming from FVG">Coming from FVG</option>
+              <option value="Coming from counter FVG">Coming from counter FVG</option>
+              <option value="Coming from counter CISD FVG">Coming from counter CISD FVG</option>
+              <option value="Trigger candle is counter-CISD created candle">Trigger candle is counter-CISD created candle</option>
+              <option value="Triggering after creating the counter CISD">Triggering after creating the counter CISD</option>
+              <option value="Coming from counter SMT">Coming from counter SMT</option>
+              <option value="Single candle retracement">Single candle retracement</option>
+              <option value="Aggressive retracement">Aggressive retracement</option>
+            </select>
+            <select id="entryLevelFilter">
+              <option value="All">All Entry Levels</option>
+              <option value="SL above 5 pips, so 50% of CISD entry">SL above 5 pips, so 50% of CISD entry</option>
+              <option value="FVG is in CISD, so FVG sweep entry">FVG is in CISD, so FVG sweep entry</option>
+              <option value="CISD level entry">CISD level entry</option>
+            </select>
+            <select id="beLogicFilter">
+              <option value="All">All BE Logic</option>
+              <option value="Counter FVG mitigation">Counter FVG mitigation</option>
+              <option value="Counter CISD FVG mitigation">Counter CISD FVG mitigation</option>
+              <option value="BE level">BE level</option>
+              <option value="None">None</option>
+            </select>
             <label class="date-filter-label">From <input id="dateFromFilter" type="date" /></label>
             <label class="date-filter-label">To <input id="dateToFilter" type="date" /></label>
             <button id="clearResearchFiltersBtn" class="ghost" type="button">Clear Filters</button>
@@ -302,12 +337,10 @@
                 <tr>
                   <th>Date</th>
                   <th>Pair</th>
-                  <th>Dir</th>
-                  <th>HTF → LTF</th>
-                  <th>Setup Pattern</th>
+                  <th>Direction</th>
+                  <th>Setup</th>
+                  <th>CISD</th>
                   <th>Result</th>
-                  <th>RR</th>
-                  <th>P/L</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -576,6 +609,28 @@
     </section>
 
 
+    <section id="tradeDetailsModal" class="details-modal" role="dialog" aria-modal="true" aria-hidden="true" hidden>
+      <div class="details-backdrop" data-details-close></div>
+      <article class="details-card" role="document">
+        <div class="details-head">
+          <div>
+            <p class="section-kicker">Trade Details</p>
+            <h2 id="detailsTradeTitle">Trade Overview</h2>
+            <p id="detailsTradeSubtitle" class="details-subtitle"></p>
+          </div>
+          <button id="detailsModalCloseBtn" class="ghost icon-close" type="button" aria-label="Close trade details">×</button>
+        </div>
+
+        <div id="tradeDetailsBody" class="details-body"></div>
+
+        <div class="details-actions">
+          <button id="detailsCloseBtn" class="ghost" type="button">Close</button>
+          <button id="detailsEditBtn" class="primary" type="button">Edit Trade</button>
+          <button id="detailsDeleteBtn" class="danger-primary" type="button">Delete Trade</button>
+        </div>
+      </article>
+    </section>
+
     <section id="deleteConfirmModal" class="delete-confirm-modal" role="dialog" aria-modal="true" aria-hidden="true" hidden>
       <div class="delete-confirm-backdrop" data-delete-cancel></div>
       <article class="delete-confirm-card" role="document">
@@ -606,12 +661,11 @@
         <td class="date-cell"></td>
         <td class="pair-cell"></td>
         <td class="direction-cell"></td>
-        <td class="timeframe-cell"></td>
-        <td class="pattern-cell"></td>
+        <td class="setup-cell"></td>
+        <td class="cisd-cell"></td>
         <td><span class="result-pill"></span></td>
-        <td class="rr-cell"></td>
-        <td class="pnl-cell"></td>
         <td class="actions-cell">
+          <button class="small view-btn" type="button">View</button>
           <button class="small edit-btn" type="button">Edit</button>
           <button class="small danger delete-btn" type="button">Delete</button>
         </td>

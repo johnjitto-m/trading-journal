@@ -1,41 +1,36 @@
-# John's Trading Journal — v14
+# John's Trading Journal WebApp v15
 
-A cloud-synced HTF/LTF FVG strategy research journal.
+Professional HTF FVG + LTF execution trading journal with Supabase cloud sync.
 
-## Current version
+## v15 changes
 
-v14 adds a modern delete confirmation modal.
-
-### Included
-
-- Supabase login / sign-up
-- Cloud-synced trades
-- Dashboard view with current-week trades only
-- Research Journal view with all trades and filters
-- HTF analysis flow
-- LTF execution flow
-- Multiple TradingView / image links per trade
-- Backup JSON
-- Export CSV
-- Full trade editing from Basic Info onward
-- Delete from Supabase cloud and local journal
-- Modern delete confirmation modal with trade summary
+- Clean trade log columns: Date, Pair, Direction, Setup, CISD, Result, Actions.
+- Added View Trade details modal.
+- View modal shows full Basic Info, HTF Analysis, LTF Analysis, outcome, P/L, and chart links.
+- Kept modern delete confirmation modal.
+- Improved Research Journal analytics:
+  - Winning trade similarities
+  - Losing trade similarities
+  - Best/worst CISD type
+  - Best FVG order
+  - Best FVG location
+  - Best/worst mitigation tag
+  - Best entry level
+  - Best BE logic
+- Added more research filters:
+  - Direction
+  - FVG location
+  - Mitigation/retracement tag
+  - Entry level
+  - BE logic
 
 ## Supabase setup
 
-Open `app.js` and paste your own values:
+Open `app.js` and set:
 
 ```js
 const SUPABASE_PROJECT_ID = 'your-project-id';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_...';
 ```
 
-Do not paste database passwords, service role keys, or secret keys.
-
-## Push
-
-```bash
-git add .
-git commit -m "Add modern delete confirmation modal"
-git push origin main
-```
+Never paste service_role keys, secret keys, or database passwords in the frontend.
