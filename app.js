@@ -7,6 +7,8 @@ const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_KbjXNsBhWb0ZCDDR-74-KA_NjtwhVM6
 const STORAGE_KEY = 'john-trading-journal-v6-supabase';
 const OLD_STORAGE_KEYS = ['john-trading-journal-v5', 'john-trading-journal-v4', 'john-trading-journal-v3', 'john-trading-journal-v2', 'john-trading-journal-v1'];
 
+let deferredInstallPrompt = null;
+
 // Replace these files with your own reference examples when ready.
 // Keep the same file names, or update the paths here.
 const exampleImages = {
@@ -1811,6 +1813,42 @@ fvgFilter?.addEventListener('change', renderResearch);
 cisdFilter?.addEventListener('change', renderResearch);
 fvgLocationFilter?.addEventListener('change', renderResearch);
 mitigationFilter?.addEventListener('change', renderResearch);
+
+function registerServiceWorker() {
+  if (!('serviceWorker' in navigator)) return;
+
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js').catch((error) => {
+      console.warn('Service worker registration failed:', error);
+    });
+  });
+}
+
+function setupPwaInstallPrompt() {
+  const installButton = document.getElementById('installAppBtn');
+  if (!installButton) return;
+
+  window.addEventListener('beforeinstallprompt', (event) => {
+    event.preventDefault();
+    deferredInstallPrompt = event;
+    installButton.hidden = false;
+  });
+
+  installButton.addEventListener('click', async () => {
+    if (!deferredInstallPrompt) return;
+
+    deferredInstallPrompt.prompt();
+    await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+    installButton.hidden = true;
+  });
+
+  window.addEventListener('appinstalled', () => {
+    deferredInstallPrompt = null;
+    installButton.hidden = true;
+  });
+}
+
 entryLevelFilter?.addEventListener('change', renderResearch);
 beLogicFilter?.addEventListener('change', renderResearch);
 sortFilter?.addEventListener('change', renderResearch);
@@ -1858,6 +1896,8 @@ cloudUi.signUpBtn?.addEventListener('click', signUp);
 cloudUi.logoutBtn?.addEventListener('click', signOut);
 
 setExampleImages();
+setupPwaInstallPrompt();
+registerServiceWorker();
 resetForm();
 renderTable();
 initCloudSync();

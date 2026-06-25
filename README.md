@@ -14,3 +14,14 @@ Professional browser-based trading journal for HTF FVG → CISD → LTF executio
 ## Version 21
 
 Elegant UI polish: refined dashboard spacing, equal stat cards, cleaner table rows, consistent buttons/badges, premium modal surfaces, and improved mobile responsiveness.
+
+
+## PWA mobile install
+
+This version includes PWA support. After deploying to GitHub Pages, open the site on Android Chrome/Brave and choose **Install app** or **Add to Home screen**. The installed app uses the same Supabase cloud sync.
+
+Files added:
+
+- `manifest.json`
+- `service-worker.js`
+- `assets/icons/`
