@@ -45,6 +45,7 @@ const researchEmptyState = document.querySelector('#researchEmptyState');
 const searchInput = document.querySelector('#searchInput');
 const directionFilter = document.querySelector('#directionFilter');
 const statusFilter = document.querySelector('#statusFilter');
+const entryAttemptFilter = document.querySelector('#entryAttemptFilter');
 const pairFilter = document.querySelector('#pairFilter');
 const resultFilter = document.querySelector('#resultFilter');
 const sessionFilter = document.querySelector('#sessionFilter');
@@ -208,6 +209,7 @@ function migrateOldTrade(trade) {
     ...trade,
     day: trade.day || getDayName(trade.date),
     tradeStatus: normalizeTradeStatus(trade.tradeStatus || trade.status),
+    entryAttempt: normalizeEntryAttempt(trade.entryAttempt || trade.entry || trade.attempt),
     htfTimeframe: trade.htfTimeframe || '1H',
     ltfTimeframe: trade.ltfTimeframe || '5m',
     htfImageUploadData: trade.htfImageUploadData || '',
@@ -549,6 +551,16 @@ function normalizeTradeStatus(value) {
   return 'Took Trade';
 }
 
+function normalizeEntryAttempt(value) {
+  const entry = String(value || '').trim().toLowerCase();
+  if (entry === '2nd entry' || entry === 'second entry' || entry === '2' || entry === 'second') return '2nd Entry';
+  return '1st Entry';
+}
+
+function getEntryAttemptShort(trade) {
+  return normalizeEntryAttempt(trade?.entryAttempt || trade?.entry || trade?.attempt) === '2nd Entry' ? '2nd' : '1st';
+}
+
 function isCountedTrade(trade) {
   return normalizeTradeStatus(trade?.tradeStatus || trade?.status) === 'Took Trade';
 }
@@ -839,6 +851,7 @@ function getFilteredTrades() {
   const query = searchInput?.value.trim().toLowerCase() || '';
   const direction = directionFilter?.value || 'All';
   const status = statusFilter?.value || 'All';
+  const entryAttempt = entryAttemptFilter?.value || 'All';
   const pair = pairFilter?.value || 'All';
   const result = resultFilter?.value || 'All';
   const session = sessionFilter?.value || 'All';
@@ -855,6 +868,7 @@ function getFilteredTrades() {
   const filtered = trades
     .filter((trade) => (direction === 'All' ? true : trade.direction === direction))
     .filter((trade) => (status === 'All' ? true : normalizeTradeStatus(trade.tradeStatus) === status))
+    .filter((trade) => (entryAttempt === 'All' ? true : normalizeEntryAttempt(trade.entryAttempt) === entryAttempt))
     .filter((trade) => (pair === 'All' ? true : trade.pair === pair))
     .filter((trade) => (result === 'All' ? true : trade.result === result))
     .filter((trade) => (session === 'All' ? true : trade.session === session))
@@ -876,6 +890,7 @@ function getFilteredTrades() {
         trade.pair,
         trade.direction,
         normalizeTradeStatus(trade.tradeStatus),
+        normalizeEntryAttempt(trade.entryAttempt),
         trade.session,
         trade.htfTimeframe,
         trade.ltfTimeframe,
@@ -1094,6 +1109,7 @@ function renderTradeRows(list, targetBody, targetEmpty) {
     row.querySelector('.pair-cell').textContent = trade.pair || '-';
     row.querySelector('.direction-cell').innerHTML = `<span class="direction-badge ${String(trade.direction || '').toLowerCase()}">${escapeHtml(trade.direction || '-')}</span>`;
     row.querySelector('.status-cell').innerHTML = `<span class="status-badge status-${getTradeStatusClass(trade)}">${escapeHtml(normalizeTradeStatus(trade.tradeStatus))}</span>`;
+    row.querySelector('.entry-attempt-cell').innerHTML = `<span class="entry-badge entry-${getEntryAttemptShort(trade).toLowerCase()}">${escapeHtml(getEntryAttemptShort(trade))}</span>`;
     row.querySelector('.setup-cell').textContent = trade.fvgOrder || '-';
     row.querySelector('.cisd-cell').textContent = trade.cisdType || '-';
 
@@ -1145,7 +1161,7 @@ function setAppView(view) {
 
 function clearResearchFilters() {
   if (searchInput) searchInput.value = '';
-  [directionFilter, statusFilter, pairFilter, resultFilter, sessionFilter, htfFilter, fvgFilter, cisdFilter, fvgLocationFilter, mitigationFilter, entryLevelFilter, beLogicFilter].forEach((filter) => {
+  [directionFilter, statusFilter, entryAttemptFilter, pairFilter, resultFilter, sessionFilter, htfFilter, fvgFilter, cisdFilter, fvgLocationFilter, mitigationFilter, entryLevelFilter, beLogicFilter].forEach((filter) => {
     if (filter) filter.value = 'All';
   });
   if (dateFromFilter) dateFromFilter.value = '';
@@ -1232,6 +1248,7 @@ function resetForm() {
   fields.risk.value = 25;
   fields.rr.value = 1;
   setChecked('tradeStatus', 'Took Trade');
+  setChecked('entryAttempt', '1st Entry');
   setChecked('tradeOutcome', 'BE');
   clearChecked('fvgOrder');
   clearChecked('cisdType');
@@ -1271,6 +1288,7 @@ function getFormTrade() {
     date: fields.date.value,
     day: fields.day.value,
     tradeStatus: getChecked('tradeStatus') || 'Took Trade',
+    entryAttempt: getChecked('entryAttempt') || '1st Entry',
     pair: fields.pair.value,
     direction: fields.direction.value,
     session: fields.session.value,
@@ -1308,7 +1326,7 @@ function viewTrade(id) {
   const pnl = calculatePnL(trade);
   if (detailsModal.title) detailsModal.title.textContent = `${trade.pair || '-'} ${trade.direction || ''}`.trim();
   if (detailsModal.subtitle) {
-    detailsModal.subtitle.textContent = `${normalizeTradeStatus(trade.tradeStatus)} · ${formatDateDMY(trade.date)} · ${trade.day || getDayName(trade.date)} · ${trade.session || '-'} · ${trade.htfTimeframe || '-'} → ${trade.ltfTimeframe || '-'}`;
+    detailsModal.subtitle.textContent = `${normalizeTradeStatus(trade.tradeStatus)} · ${normalizeEntryAttempt(trade.entryAttempt)} · ${formatDateDMY(trade.date)} · ${trade.day || getDayName(trade.date)} · ${trade.session || '-'} · ${trade.htfTimeframe || '-'} → ${trade.ltfTimeframe || '-'}`;
   }
   if (detailsModal.body) detailsModal.body.innerHTML = buildTradeDetails(trade, pnl);
 
@@ -1331,6 +1349,7 @@ function buildTradeDetails(trade, pnl) {
   return `
     <section class="details-overview-grid">
       ${detailMetric('Status', `<span class="status-badge status-${getTradeStatusClass(trade)}">${escapeHtml(normalizeTradeStatus(trade.tradeStatus))}</span>`, true)}
+      ${detailMetric('Entry Attempt', `<span class="entry-badge entry-${getEntryAttemptShort(trade).toLowerCase()}">${escapeHtml(normalizeEntryAttempt(trade.entryAttempt))}</span>`, true)}
       ${detailMetric('Result', `<span class="result-pill result-${getResultClass(getDisplayResult(trade))}">${escapeHtml(getDisplayResult(trade))}</span>`, true)}
       ${detailMetric('Risk', `$${Number(trade.risk || 0).toFixed(2)}`)}
       ${detailMetric('RR', `${Number(trade.rr || 0).toFixed(2)}R`)}
@@ -1345,6 +1364,7 @@ function buildTradeDetails(trade, pnl) {
       <div class="details-grid">
         ${detailItem('Date', `${formatDateDMY(trade.date)} · ${trade.day || getDayName(trade.date)}`)}
         ${detailItem('Status', normalizeTradeStatus(trade.tradeStatus))}
+        ${detailItem('Entry Attempt', normalizeEntryAttempt(trade.entryAttempt))}
         ${detailItem('Pair', trade.pair || '-')}
         ${detailItem('Direction', trade.direction || '-')}
         ${detailItem('Session', trade.session || '-')}
@@ -1429,6 +1449,7 @@ function editTrade(id) {
   fields.date.value = trade.date;
   fields.day.value = trade.day || getDayName(trade.date);
   setChecked('tradeStatus', normalizeTradeStatus(trade.tradeStatus));
+  setChecked('entryAttempt', normalizeEntryAttempt(trade.entryAttempt));
   fields.pair.value = trade.pair || 'EURUSD';
   fields.direction.value = trade.direction || 'Long';
   fields.session.value = trade.session || 'London';
@@ -1496,10 +1517,11 @@ function buildDeleteTradeSummary(trade) {
   return `
     <div class="delete-summary-main">
       <strong>${escapeHtml(trade.pair || '-')} ${escapeHtml(trade.direction || '')}</strong>
-      <span>${escapeHtml(normalizeTradeStatus(trade.tradeStatus))} · ${escapeHtml(formatDateDMY(trade.date))} · ${escapeHtml(trade.day || getDayName(trade.date))} · ${escapeHtml(trade.session || '-')}</span>
+      <span>${escapeHtml(normalizeTradeStatus(trade.tradeStatus))} · ${escapeHtml(normalizeEntryAttempt(trade.entryAttempt))} · ${escapeHtml(formatDateDMY(trade.date))} · ${escapeHtml(trade.day || getDayName(trade.date))} · ${escapeHtml(trade.session || '-')}</span>
     </div>
     <div class="delete-summary-grid">
       <div><span>Status</span><strong>${escapeHtml(normalizeTradeStatus(trade.tradeStatus))}</strong></div>
+      <div><span>Entry</span><strong>${escapeHtml(normalizeEntryAttempt(trade.entryAttempt))}</strong></div>
       <div><span>HTF → LTF</span><strong>${escapeHtml(trade.htfTimeframe || '-')} → ${escapeHtml(trade.ltfTimeframe || '-')}</strong></div>
       <div><span>FVG Order</span><strong>${escapeHtml(trade.fvgOrder || '-')}</strong></div>
       <div><span>CISD</span><strong>${escapeHtml(trade.cisdType || '-')}</strong></div>
@@ -1552,7 +1574,7 @@ function exportJson() {
 
 function exportCsv() {
   const headers = [
-    'Date', 'Day', 'Trade Status', 'Pair', 'Direction', 'Session', 'HTF', 'Auto LTF', 'FVG Order',
+    'Date', 'Day', 'Trade Status', 'Entry Attempt', 'Pair', 'Direction', 'Session', 'HTF', 'Auto LTF', 'FVG Order',
     'CISD Type', 'FVG Location', 'HTF Mitigation / Entry Behavior Tags',
     'LTF Entry Level Tags', 'BE Logic', 'Risk', 'Result', 'RR', 'PnL',
     'HTF Chart Links', 'LTF Chart Links', 'HTF Notes', 'General Notes'
@@ -1561,6 +1583,7 @@ function exportCsv() {
     trade.date,
     trade.day,
     normalizeTradeStatus(trade.tradeStatus),
+    normalizeEntryAttempt(trade.entryAttempt),
     trade.pair,
     trade.direction,
     trade.session,

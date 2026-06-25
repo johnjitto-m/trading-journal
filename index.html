@@ -95,6 +95,7 @@
                   <th>Pair</th>
                   <th>Direction</th>
                   <th>Status</th>
+                  <th>Entry</th>
                   <th>Setup</th>
                   <th>CISD</th>
                   <th>Result</th>
@@ -170,6 +171,11 @@
               <option value="Took Trade">Took Trade</option>
               <option value="Missed Trade">Missed Trade</option>
               <option value="Not Taken">Not Taken</option>
+            </select>
+            <select id="entryAttemptFilter">
+              <option value="All">All Entries</option>
+              <option value="1st Entry">1st Entry</option>
+              <option value="2nd Entry">2nd Entry</option>
             </select>
             <select id="pairFilter">
               <option value="All">All Pairs</option>
@@ -268,6 +274,7 @@
                   <th>Pair</th>
                   <th>Direction</th>
                   <th>Status</th>
+                  <th>Entry</th>
                   <th>Setup</th>
                   <th>CISD</th>
                   <th>Result</th>
@@ -309,22 +316,39 @@
           <input id="tradeId" type="hidden" />
 
           <section id="basicStep" class="form-step active">
-            <div class="question-card compact-question trade-status-card">
-              <p class="question-number">Trade Status</p>
-              <h3>Did you take this setup?</h3>
-              <div class="choice-grid three-choice">
-                <label class="choice-card status-choice-card">
-                  <input type="radio" name="tradeStatus" value="Took Trade" checked />
-                  <span class="choice-body"><strong>Took Trade</strong><small>Counts in P/L, win rate and RR.</small></span>
-                </label>
-                <label class="choice-card status-choice-card">
-                  <input type="radio" name="tradeStatus" value="Missed Trade" />
-                  <span class="choice-body"><strong>Missed Trade</strong><small>Saved for review, not counted in stats.</small></span>
-                </label>
-                <label class="choice-card status-choice-card">
-                  <input type="radio" name="tradeStatus" value="Not Taken" />
-                  <span class="choice-body"><strong>Not Taken</strong><small>Skipped setup, not counted in stats.</small></span>
-                </label>
+            <div class="basic-intent-grid">
+              <div class="question-card compact-question trade-status-card">
+                <p class="question-number">Trade Status</p>
+                <h3>Did you take this setup?</h3>
+                <div class="choice-grid three-choice">
+                  <label class="choice-card status-choice-card">
+                    <input type="radio" name="tradeStatus" value="Took Trade" checked />
+                    <span class="choice-body"><strong>Took Trade</strong><small>Counts in P/L, win rate and RR.</small></span>
+                  </label>
+                  <label class="choice-card status-choice-card">
+                    <input type="radio" name="tradeStatus" value="Missed Trade" />
+                    <span class="choice-body"><strong>Missed Trade</strong><small>Saved for review, not counted in stats.</small></span>
+                  </label>
+                  <label class="choice-card status-choice-card">
+                    <input type="radio" name="tradeStatus" value="Not Taken" />
+                    <span class="choice-body"><strong>Not Taken</strong><small>Skipped setup, not counted in stats.</small></span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="question-card compact-question entry-attempt-card">
+                <p class="question-number">Entry Attempt</p>
+                <h3>Which entry is this?</h3>
+                <div class="choice-grid two-choice">
+                  <label class="choice-card status-choice-card">
+                    <input type="radio" name="entryAttempt" value="1st Entry" checked />
+                    <span class="choice-body"><strong>1st Entry</strong><small>First valid entry for this setup.</small></span>
+                  </label>
+                  <label class="choice-card status-choice-card">
+                    <input type="radio" name="entryAttempt" value="2nd Entry" />
+                    <span class="choice-body"><strong>2nd Entry</strong><small>Second valid entry for the same FVG.</small></span>
+                  </label>
+                </div>
               </div>
             </div>
             <div class="grid two">
@@ -707,6 +731,7 @@
         <td class="pair-cell"></td>
         <td class="direction-cell"></td>
         <td class="status-cell"></td>
+        <td class="entry-attempt-cell"></td>
         <td class="setup-cell"></td>
         <td class="cisd-cell"></td>
         <td><span class="result-pill"></span></td>
