@@ -99,3 +99,12 @@ Use TradingView snapshot links where possible. Uploaded fallback screenshots are
 ## v10 Auth Gate
 
 The app now shows only the Supabase sign-in/sign-up screen until the user signs in. After sign-in, the journal opens and the cloud header only shows the signed-in email/status and Logout.
+
+
+## Version 11 update
+
+- Login screen now shows only sign in / sign up.
+- After login, the journal page shows a compact Supabase session header with signed-in email and logout only.
+- Manual Load Cloud / Upload Local controls were removed from the UI.
+- Trades auto-save to Supabase when you save/edit/delete.
+- JSON import auto-syncs to Supabase when signed in.

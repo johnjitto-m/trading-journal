@@ -98,7 +98,6 @@ const stats = {
 const cloudUi = {
   status: document.querySelector('#cloudStatus'),
   authControls: document.querySelector('#authControls'),
-  syncControls: document.querySelector('#syncControls'),
   email: document.querySelector('#authEmail'),
   password: document.querySelector('#authPassword'),
   signInBtn: document.querySelector('#signInBtn'),
@@ -240,12 +239,12 @@ function setAuthUi(user) {
 
   if (cloudUi.title) cloudUi.title.textContent = signedIn ? 'Supabase Connected' : 'Supabase Login';
   if (cloudUi.authControls) cloudUi.authControls.hidden = signedIn || !cloudReady;
-  if (cloudUi.syncControls) cloudUi.syncControls.hidden = true;
   if (cloudUi.logoutBtn) cloudUi.logoutBtn.hidden = !signedIn;
   if (cloudUi.signedInEmail) {
     cloudUi.signedInEmail.hidden = !signedIn;
     cloudUi.signedInEmail.textContent = signedIn ? `Signed in as ${user.email}` : '';
   }
+  if (signedIn && cloudUi.password) cloudUi.password.value = '';
 }
 
 function sanitizeTradeForCloud(trade) {
@@ -274,7 +273,7 @@ async function initCloudSync() {
   cloudReady = true;
   supabaseClient = window.supabase.createClient(getSupabaseUrl(), SUPABASE_PUBLISHABLE_KEY);
   setAuthUi(null);
-  setCloudStatus('Cloud ready. Sign in to load and sync trades.', 'neutral');
+  setCloudStatus('Sign in to open your cloud trading journal.', 'neutral');
 
   supabaseClient.auth.onAuthStateChange((_event, session) => {
     handleAuthSession(session);
@@ -293,11 +292,11 @@ async function handleAuthSession(session) {
   setAuthUi(currentUser);
 
   if (!currentUser) {
-    setCloudStatus(cloudReady ? 'Sign in or create an account to open your trading journal.' : 'Cloud not configured.', 'neutral');
+    setCloudStatus(cloudReady ? 'Sign in to open your cloud trading journal.' : 'Cloud not configured.', 'neutral');
     return;
   }
 
-  setCloudStatus(`Signed in as ${currentUser.email}. Loading cloud trades...`, 'good');
+  setCloudStatus('Connected. Loading cloud trades...', 'good');
   await loadCloudTrades({ keepLocalIfEmpty: true });
 }
 
@@ -385,14 +384,18 @@ async function loadCloudTrades(options = {}) {
     const cloudTrades = await fetchCloudTrades();
 
     if (!cloudTrades.length && options.keepLocalIfEmpty && trades.length) {
-      setCloudStatus(`Signed in as ${currentUser.email}. Cloud is empty; local has ${trades.length} trade${trades.length === 1 ? '' : 's'}. Click Upload Local to Cloud.`, 'warn');
+      setCloudStatus(`Cloud is empty. Auto-syncing ${trades.length} local trade${trades.length === 1 ? '' : 's'}...`, 'neutral');
+      for (const trade of trades) {
+        await saveCloudTrade(trade);
+      }
+      setCloudStatus(`Connected. ${trades.length} local trade${trades.length === 1 ? '' : 's'} synced to cloud.`, 'good');
       return;
     }
 
     trades = cloudTrades;
     saveTrades();
     renderTable();
-    setCloudStatus(`Cloud loaded: ${trades.length} trade${trades.length === 1 ? '' : 's'} synced.`, 'good');
+    setCloudStatus(`Connected. ${trades.length} trade${trades.length === 1 ? '' : 's'} synced.`, 'good');
   } catch (error) {
     console.error(error);
     setCloudStatus(`Cloud load failed: ${error.message}`, 'warn');
@@ -1004,7 +1007,7 @@ async function deleteTrade(id) {
 
   try {
     await deleteCloudTrade(id);
-    if (currentUser) setCloudStatus('Trade deleted from cloud.', 'good');
+    if (currentUser) setCloudStatus('Connected. Trade deleted from cloud.', 'good');
   } catch (error) {
     console.error(error);
     setCloudStatus(`Local delete worked, but cloud delete failed: ${error.message}`, 'warn');
@@ -1087,8 +1090,11 @@ function importJson(event) {
       saveTrades();
       renderTable();
       if (currentUser) {
-        const upload = confirm('Journal imported locally. Upload imported trades to Supabase cloud now?');
-        if (upload) await uploadLocalToCloud();
+        setCloudStatus('Imported backup locally. Auto-syncing imported trades to cloud...', 'neutral');
+        for (const trade of trades) {
+          await saveCloudTrade(trade);
+        }
+        setCloudStatus(`Connected. Imported ${trades.length} trade${trades.length === 1 ? '' : 's'} synced to cloud.`, 'good');
       }
       alert('Journal imported successfully.');
     } catch (error) {
@@ -1157,7 +1163,7 @@ async function saveTradeFromModal() {
 
   try {
     await saveCloudTrade(trade);
-    if (currentUser) setCloudStatus('Trade saved to cloud.', 'good');
+    if (currentUser) setCloudStatus('Connected. Trade saved to cloud automatically.', 'good');
   } catch (error) {
     console.error(error);
     setCloudStatus(`Saved locally, but cloud save failed: ${error.message}`, 'warn');
@@ -1242,8 +1248,6 @@ document.querySelector('#importJsonInput').addEventListener('change', importJson
 cloudUi.signInBtn?.addEventListener('click', signIn);
 cloudUi.signUpBtn?.addEventListener('click', signUp);
 cloudUi.logoutBtn?.addEventListener('click', signOut);
-cloudUi.loadCloudBtn?.addEventListener('click', () => loadCloudTrades({ keepLocalIfEmpty: false }));
-cloudUi.uploadLocalBtn?.addEventListener('click', uploadLocalToCloud);
 
 setExampleImages();
 resetForm();

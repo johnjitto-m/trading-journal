@@ -496,3 +496,80 @@ button:disabled {
   font-weight: 900;
   font-size: 0.95rem;
 }
+
+/* v11 professional auth/session layout */
+.auth-locked {
+  display: grid;
+  align-content: start;
+}
+.auth-locked .app-header {
+  padding-top: clamp(3rem, 9vh, 7rem);
+  padding-bottom: 1.4rem;
+}
+.auth-locked .cloud-panel {
+  width: min(680px, calc(100% - 2rem));
+  margin-top: 0.75rem;
+  background: rgba(17, 24, 39, 0.92);
+}
+.auth-locked .cloud-head {
+  margin-bottom: 1.15rem;
+}
+.auth-locked #cloudTitle {
+  font-size: 1.2rem;
+}
+.auth-locked .cloud-status {
+  color: var(--muted);
+}
+.auth-card-grid {
+  grid-template-columns: 1fr;
+  gap: 0.85rem;
+}
+.auth-action-row {
+  justify-content: center;
+  margin-top: 0.15rem;
+}
+.auth-action-row .primary,
+.auth-action-row .ghost {
+  min-width: 112px;
+}
+
+.app-unlocked .cloud-panel {
+  margin-bottom: 0.25rem;
+  padding: 0.8rem 1rem;
+  background: rgba(17, 24, 39, 0.72);
+}
+.app-unlocked .cloud-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0;
+}
+.app-unlocked .cloud-head > div {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.65rem 1rem;
+}
+.app-unlocked .cloud-head .section-kicker {
+  margin: 0;
+}
+.app-unlocked #cloudTitle {
+  font-size: 1rem;
+}
+.app-unlocked .signed-in-email,
+.app-unlocked .cloud-status {
+  margin: 0;
+}
+.app-unlocked .cloud-status {
+  font-size: 0.82rem;
+}
+.app-unlocked #logoutBtn {
+  flex: 0 0 auto;
+}
+@media (max-width: 900px) {
+  .app-unlocked .cloud-head > div {
+    display: grid;
+    gap: 0.2rem;
+  }
+}

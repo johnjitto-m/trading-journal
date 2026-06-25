@@ -29,12 +29,12 @@
           <p class="section-kicker">Cloud Sync</p>
           <h2 id="cloudTitle">Supabase Login</h2>
           <p id="signedInEmail" class="signed-in-email" hidden></p>
-          <p id="cloudStatus" class="cloud-status">Cloud not configured yet. Paste your Supabase Project ID and publishable key in app.js.</p>
+          <p id="cloudStatus" class="cloud-status">Sign in to open your cloud trading journal.</p>
         </div>
         <button id="logoutBtn" class="ghost" type="button" hidden>Logout</button>
       </div>
 
-      <div id="authControls" class="cloud-grid">
+      <div id="authControls" class="cloud-grid auth-card-grid">
         <label>
           Email
           <input id="authEmail" type="email" placeholder="your@email.com" autocomplete="email" />
@@ -43,16 +43,10 @@
           Password
           <input id="authPassword" type="password" placeholder="Your Supabase password" autocomplete="current-password" />
         </label>
-        <div class="cloud-actions">
+        <div class="cloud-actions auth-action-row">
           <button id="signInBtn" class="primary" type="button">Sign In</button>
           <button id="signUpBtn" class="ghost" type="button">Sign Up</button>
         </div>
-      </div>
-
-      <div id="syncControls" class="cloud-actions" hidden>
-        <button id="loadCloudBtn" class="ghost" type="button">Load Cloud Trades</button>
-        <button id="uploadLocalBtn" class="ghost" type="button">Upload Local to Cloud</button>
-        <small id="syncHint" class="field-hint">Trades save to Supabase when you save/edit/delete. Backup JSON still works as emergency backup.</small>
       </div>
     </section>
 
