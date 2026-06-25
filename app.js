@@ -204,8 +204,8 @@ function migrateOldTrade(trade) {
     ...trade,
     day: trade.day || getDayName(trade.date),
     tradeStatus: normalizeTradeStatus(trade.tradeStatus || trade.status),
-    htfTimeframe: trade.htfTimeframe || '1H',
-    ltfTimeframe: trade.ltfTimeframe || '5m',
+    htfTimeframe: trade.htfTimeframe || '15m',
+    ltfTimeframe: trade.ltfTimeframe || '1m',
     htfImageUploadData: trade.htfImageUploadData || '',
     ltfImageUploadData: trade.ltfImageUploadData || '',
     htfChartLinks: htfLinks,
@@ -1147,7 +1147,7 @@ function resetForm() {
   fields.pair.value = 'EURUSD';
   fields.direction.value = 'Long';
   fields.session.value = 'London';
-  fields.htfTimeframe.value = '1H';
+  fields.htfTimeframe.value = '15m';
   fields.risk.value = 25;
   fields.rr.value = 1;
   setChecked('tradeStatus', 'Took Trade');
@@ -1346,7 +1346,7 @@ function editTrade(id) {
   fields.pair.value = trade.pair || 'EURUSD';
   fields.direction.value = trade.direction || 'Long';
   fields.session.value = trade.session || 'London';
-  fields.htfTimeframe.value = trade.htfTimeframe || '1H';
+  fields.htfTimeframe.value = trade.htfTimeframe || '15m';
   fields.ltfTimeframe.value = trade.ltfTimeframe || htfToLtf[fields.htfTimeframe.value];
   uploadedImages.htf = trade.htfImageUploadData || '';
   uploadedImages.ltf = trade.ltfImageUploadData || '';
