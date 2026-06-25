@@ -1,93 +1,96 @@
-# John's Trading Journal — HTF + LTF FVG Strategy Journal
+# John's Trading Journal — v9 Supabase Cloud Sync
 
-A lightweight static trading journal built with HTML, CSS and JavaScript.
+A browser-based trading journal for John's HTF FVG → CISD → LTF execution model.
 
-This version is focused on John's FVG strategy research flow:
+## What v9 adds
 
-1. Basic trade info
-2. HTF FVG analysis
-3. LTF execution analysis
+- Supabase email/password login
+- Cloud save/load for trades
+- Same trades across laptop, mobile, and tablet after login
+- Local browser backup still works
+- Backup JSON and Export CSV still work
 
-## What is included
+## Supabase setup
 
-### Basic Info
+Create a Supabase project and run this in **SQL Editor → New query**:
 
-- Date
-- Auto day
-- Pair
-- Direction
-- Session
-- HTF timeframe
-- Auto LTF timeframe
+```sql
+create table public.trades (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null default auth.uid(),
+  trade_data jsonb not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
 
-Auto LTF map:
+alter table public.trades enable row level security;
 
-- 15m HTF → 1m LTF
-- 1H HTF → 5m LTF
-- 4H HTF → 15m LTF
-- 1D HTF → 1H LTF
+create policy "Users can read own trades"
+on public.trades
+for select
+to authenticated
+using (auth.uid() = user_id);
 
-### HTF Analysis
+create policy "Users can insert own trades"
+on public.trades
+for insert
+to authenticated
+with check (auth.uid() = user_id);
 
-- Multiple HTF TradingView / image links
-- HTF preview box
-- First FVG / Second FVG
-- Clean / Messy / Irregular CISD
-- FVG inside CISD / FVG outside CISD
-- FVG mitigation / retracement / entry behavior multi-select
-- HTF notes
+create policy "Users can update own trades"
+on public.trades
+for update
+to authenticated
+using (auth.uid() = user_id)
+with check (auth.uid() = user_id);
 
-### LTF Analysis
-
-- Multiple LTF TradingView / image links
-- LTF preview box
-- Entry level multi-select
-- BE logic select one
-
-The earlier LTF entry behavior question was merged into the HTF mitigation/retracement question. LTF notes are intentionally removed.
-
-## TradingView snapshot preview
-
-Use TradingView camera/snapshot link format:
-
-```text
-https://www.tradingview.com/x/yourSnapshotId/
+create policy "Users can delete own trades"
+on public.trades
+for delete
+to authenticated
+using (auth.uid() = user_id);
 ```
 
-Normal live chart/layout links may open in TradingView but may not preview inside the app.
+## Add your Supabase keys
 
-## Reference example images
+Open `app.js` and replace:
 
-Replace files in:
-
-```text
-assets/examples/
+```js
+const SUPABASE_PROJECT_ID = 'PASTE_YOUR_PROJECT_ID_HERE';
+const SUPABASE_PUBLISHABLE_KEY = 'PASTE_YOUR_PUBLISHABLE_KEY_HERE';
 ```
 
-Current example files:
+Use only:
 
-```text
-clean-cisd.svg
-messy-cisd.svg
-irregular-cisd.svg
-fvg-inside-cisd.svg
-fvg-outside-cisd.svg
+- Project ID / Reference
+- Publishable key / anon public key
+
+Never paste service role key, secret key, or database password into frontend code.
+
+## Push to GitHub
+
+```bash
+cd ~/Downloads/trading-journal
+cp -r ~/Downloads/trading-journal-webapp-v9/* .
+git status
+git add .
+git commit -m "Add Supabase cloud sync"
+git push origin main
 ```
 
-You can replace them with PNG files, but then update the paths in `app.js`.
+Then wait for GitHub Pages deployment.
 
-## Data storage
+## First use
 
-Trades are saved in your browser's localStorage. Use `Backup JSON` regularly.
+1. Open the live GitHub Pages website.
+2. Sign up with email/password.
+3. If email confirmation is enabled in Supabase, confirm your email.
+4. Sign in.
+5. Add a trade.
+6. Open the site from mobile and sign in with the same account.
 
-## Deploy to GitHub Pages
+If you already have local trades, click **Upload Local to Cloud** after signing in.
 
-Push the files to your `trading-journal` repo and enable GitHub Pages from the `main` branch, `/root` folder.
+## Important
 
-
-## v8 updates
-
-- Adds LTF trade outcome: BE / SL / TP.
-- Adds Risk $ and RR back into the LTF outcome card.
-- Shows all saved HTF and LTF chart links in the trade log using your custom link labels.
-- Reference example paths now point to `.png` files in `assets/examples/`.
+Use TradingView snapshot links where possible. Uploaded fallback screenshots are stored inside the trade object and can make cloud rows heavy if the image is large.

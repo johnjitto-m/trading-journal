@@ -1,5 +1,11 @@
-const STORAGE_KEY = 'john-trading-journal-v5';
-const OLD_STORAGE_KEYS = ['john-trading-journal-v4', 'john-trading-journal-v3', 'john-trading-journal-v2', 'john-trading-journal-v1'];
+// Supabase Cloud Sync config
+// Paste your own values here. Project URL is auto-built from Project ID.
+// Do NOT paste service_role keys, secret keys, or database password here.
+const SUPABASE_PROJECT_ID = 'wlkslzqjivvsemmyengj';
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_KbjXNsBhWb0ZCDDR-74-KA_NjtwhVM6';
+
+const STORAGE_KEY = 'john-trading-journal-v6-supabase';
+const OLD_STORAGE_KEYS = ['john-trading-journal-v5', 'john-trading-journal-v4', 'john-trading-journal-v3', 'john-trading-journal-v2', 'john-trading-journal-v1'];
 
 // Replace these files with your own reference examples when ready.
 // Keep the same file names, or update the paths here.
@@ -89,10 +95,27 @@ const stats = {
   avgRR: document.querySelector('#avgRR'),
 };
 
+const cloudUi = {
+  status: document.querySelector('#cloudStatus'),
+  authControls: document.querySelector('#authControls'),
+  syncControls: document.querySelector('#syncControls'),
+  email: document.querySelector('#authEmail'),
+  password: document.querySelector('#authPassword'),
+  signInBtn: document.querySelector('#signInBtn'),
+  signUpBtn: document.querySelector('#signUpBtn'),
+  logoutBtn: document.querySelector('#logoutBtn'),
+  loadCloudBtn: document.querySelector('#loadCloudBtn'),
+  uploadLocalBtn: document.querySelector('#uploadLocalBtn'),
+};
+
 let uploadedImages = { htf: '', ltf: '' };
 let chartLinks = clone(defaultChartLinks);
 let activeChartIndex = { htf: 0, ltf: 0 };
 let trades = loadTrades();
+let supabaseClient = null;
+let currentUser = null;
+let cloudReady = false;
+let cloudBusy = false;
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
@@ -178,6 +201,244 @@ function firstFilledUrl(links = []) {
 
 function saveTrades() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(trades));
+}
+
+function getSupabaseUrl() {
+  const project = SUPABASE_PROJECT_ID.trim();
+  if (!project || project === 'PASTE_YOUR_PROJECT_ID_HERE') return '';
+  if (project.startsWith('https://')) return project.replace(/\/$/, '');
+  return `https://${project}.supabase.co`;
+}
+
+function hasCloudConfig() {
+  return Boolean(
+    getSupabaseUrl() &&
+    SUPABASE_PUBLISHABLE_KEY &&
+    SUPABASE_PUBLISHABLE_KEY !== 'PASTE_YOUR_PUBLISHABLE_KEY_HERE'
+  );
+}
+
+function setCloudStatus(message, mode = 'neutral') {
+  if (!cloudUi.status) return;
+  cloudUi.status.textContent = message;
+  cloudUi.status.dataset.mode = mode;
+}
+
+function setCloudBusy(isBusy) {
+  cloudBusy = isBusy;
+  [cloudUi.signInBtn, cloudUi.signUpBtn, cloudUi.logoutBtn, cloudUi.loadCloudBtn, cloudUi.uploadLocalBtn]
+    .filter(Boolean)
+    .forEach((button) => { button.disabled = isBusy; });
+}
+
+function setAuthUi(user) {
+  const signedIn = Boolean(user);
+  if (cloudUi.authControls) cloudUi.authControls.hidden = signedIn || !cloudReady;
+  if (cloudUi.syncControls) cloudUi.syncControls.hidden = !signedIn;
+  if (cloudUi.logoutBtn) cloudUi.logoutBtn.hidden = !signedIn;
+}
+
+function sanitizeTradeForCloud(trade) {
+  const copy = clone(trade);
+  delete copy.cloudUpdatedAt;
+  return copy;
+}
+
+async function initCloudSync() {
+  if (!cloudUi.status) return;
+
+  if (!hasCloudConfig()) {
+    cloudReady = false;
+    setAuthUi(null);
+    setCloudStatus('Cloud not configured. Paste your Supabase Project ID and publishable key in app.js, then push again.', 'warn');
+    return;
+  }
+
+  if (!window.supabase?.createClient) {
+    cloudReady = false;
+    setAuthUi(null);
+    setCloudStatus('Supabase library did not load. Check internet connection or CDN blocking.', 'warn');
+    return;
+  }
+
+  cloudReady = true;
+  supabaseClient = window.supabase.createClient(getSupabaseUrl(), SUPABASE_PUBLISHABLE_KEY);
+  setAuthUi(null);
+  setCloudStatus('Cloud ready. Sign in to load and sync trades.', 'neutral');
+
+  supabaseClient.auth.onAuthStateChange((_event, session) => {
+    handleAuthSession(session);
+  });
+
+  const { data, error } = await supabaseClient.auth.getSession();
+  if (error) {
+    setCloudStatus(`Auth check failed: ${error.message}`, 'warn');
+    return;
+  }
+  await handleAuthSession(data.session);
+}
+
+async function handleAuthSession(session) {
+  currentUser = session?.user || null;
+  setAuthUi(currentUser);
+
+  if (!currentUser) {
+    setCloudStatus(cloudReady ? 'Cloud ready. Sign in to sync trades across devices.' : 'Cloud not configured.', 'neutral');
+    return;
+  }
+
+  setCloudStatus(`Signed in as ${currentUser.email}. Loading cloud trades...`, 'good');
+  await loadCloudTrades({ keepLocalIfEmpty: true });
+}
+
+async function signIn() {
+  if (!supabaseClient || cloudBusy) return;
+  const email = cloudUi.email.value.trim();
+  const password = cloudUi.password.value;
+  if (!email || !password) {
+    alert('Enter email and password.');
+    return;
+  }
+
+  setCloudBusy(true);
+  setCloudStatus('Signing in...', 'neutral');
+  const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+  setCloudBusy(false);
+
+  if (error) {
+    setCloudStatus(`Sign in failed: ${error.message}`, 'warn');
+    alert(error.message);
+  }
+}
+
+async function signUp() {
+  if (!supabaseClient || cloudBusy) return;
+  const email = cloudUi.email.value.trim();
+  const password = cloudUi.password.value;
+  if (!email || !password) {
+    alert('Enter email and password.');
+    return;
+  }
+  if (password.length < 6) {
+    alert('Use at least 6 characters for password.');
+    return;
+  }
+
+  setCloudBusy(true);
+  setCloudStatus('Creating account...', 'neutral');
+  const { data, error } = await supabaseClient.auth.signUp({ email, password });
+  setCloudBusy(false);
+
+  if (error) {
+    setCloudStatus(`Sign up failed: ${error.message}`, 'warn');
+    alert(error.message);
+    return;
+  }
+
+  if (!data.session) {
+    setCloudStatus('Account created. Check your email to confirm, then sign in.', 'good');
+  } else {
+    setCloudStatus(`Signed in as ${data.user?.email || email}.`, 'good');
+  }
+}
+
+async function signOut() {
+  if (!supabaseClient || cloudBusy) return;
+  setCloudBusy(true);
+  await supabaseClient.auth.signOut();
+  setCloudBusy(false);
+  currentUser = null;
+  setAuthUi(null);
+  setCloudStatus('Signed out. Local browser trades are still available.', 'neutral');
+}
+
+async function fetchCloudTrades() {
+  if (!supabaseClient || !currentUser) return [];
+  const { data, error } = await supabaseClient
+    .from('trades')
+    .select('id, trade_data, updated_at')
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+
+  return (data || []).map((row) => ({
+    ...migrateOldTrade({ ...row.trade_data, id: row.id }),
+    id: row.id,
+    cloudUpdatedAt: row.updated_at,
+  }));
+}
+
+async function loadCloudTrades(options = {}) {
+  if (!supabaseClient || !currentUser) return;
+  setCloudBusy(true);
+  try {
+    const cloudTrades = await fetchCloudTrades();
+
+    if (!cloudTrades.length && options.keepLocalIfEmpty && trades.length) {
+      setCloudStatus(`Signed in as ${currentUser.email}. Cloud is empty; local has ${trades.length} trade${trades.length === 1 ? '' : 's'}. Click Upload Local to Cloud.`, 'warn');
+      return;
+    }
+
+    trades = cloudTrades;
+    saveTrades();
+    renderTable();
+    setCloudStatus(`Cloud loaded: ${trades.length} trade${trades.length === 1 ? '' : 's'} synced.`, 'good');
+  } catch (error) {
+    console.error(error);
+    setCloudStatus(`Cloud load failed: ${error.message}`, 'warn');
+    alert(`Cloud load failed: ${error.message}`);
+  } finally {
+    setCloudBusy(false);
+  }
+}
+
+async function saveCloudTrade(trade) {
+  if (!supabaseClient || !currentUser) return;
+
+  const payload = {
+    id: trade.id,
+    trade_data: sanitizeTradeForCloud(trade),
+    updated_at: new Date().toISOString(),
+  };
+
+  const { error } = await supabaseClient
+    .from('trades')
+    .upsert(payload, { onConflict: 'id' });
+
+  if (error) throw error;
+}
+
+async function deleteCloudTrade(id) {
+  if (!supabaseClient || !currentUser) return;
+  const { error } = await supabaseClient.from('trades').delete().eq('id', id);
+  if (error) throw error;
+}
+
+async function uploadLocalToCloud() {
+  if (!supabaseClient || !currentUser || cloudBusy) return;
+  if (!trades.length) {
+    alert('No local trades to upload.');
+    return;
+  }
+
+  const ok = confirm(`Upload ${trades.length} local trade${trades.length === 1 ? '' : 's'} to Supabase cloud?`);
+  if (!ok) return;
+
+  setCloudBusy(true);
+  setCloudStatus('Uploading local trades to cloud...', 'neutral');
+
+  try {
+    for (const trade of trades) {
+      await saveCloudTrade(trade);
+    }
+    setCloudStatus(`Uploaded ${trades.length} trade${trades.length === 1 ? '' : 's'} to cloud.`, 'good');
+  } catch (error) {
+    console.error(error);
+    setCloudStatus(`Cloud upload failed: ${error.message}`, 'warn');
+    alert(`Cloud upload failed: ${error.message}`);
+  } finally {
+    setCloudBusy(false);
+  }
 }
 
 function money(value) {
@@ -721,7 +982,7 @@ function editTrade(id) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function deleteTrade(id) {
+async function deleteTrade(id) {
   const trade = trades.find((item) => item.id === id);
   if (!trade) return;
   const ok = confirm(`Delete ${trade.pair} trade from ${trade.date}?`);
@@ -730,6 +991,14 @@ function deleteTrade(id) {
   trades = trades.filter((item) => item.id !== id);
   saveTrades();
   renderTable();
+
+  try {
+    await deleteCloudTrade(id);
+    if (currentUser) setCloudStatus('Trade deleted from cloud.', 'good');
+  } catch (error) {
+    console.error(error);
+    setCloudStatus(`Local delete worked, but cloud delete failed: ${error.message}`, 'warn');
+  }
 }
 
 function exportJson() {
@@ -794,7 +1063,7 @@ function importJson(event) {
   if (!file) return;
 
   const reader = new FileReader();
-  reader.onload = () => {
+  reader.onload = async () => {
     try {
       const parsed = JSON.parse(reader.result);
       const importedTrades = Array.isArray(parsed) ? parsed : parsed.trades;
@@ -807,6 +1076,10 @@ function importJson(event) {
       }));
       saveTrades();
       renderTable();
+      if (currentUser) {
+        const upload = confirm('Journal imported locally. Upload imported trades to Supabase cloud now?');
+        if (upload) await uploadLocalToCloud();
+      }
       alert('Journal imported successfully.');
     } catch (error) {
       alert('Could not import this JSON file.');
@@ -861,7 +1134,7 @@ function validateLtfStep() {
   return true;
 }
 
-function saveTradeFromModal() {
+async function saveTradeFromModal() {
   if (!validateBasicStep()) {
     setStep('basic');
     return;
@@ -882,8 +1155,18 @@ function saveTradeFromModal() {
   }
 
   saveTrades();
-  resetForm();
   renderTable();
+
+  try {
+    await saveCloudTrade(trade);
+    if (currentUser) setCloudStatus('Trade saved to cloud.', 'good');
+  } catch (error) {
+    console.error(error);
+    setCloudStatus(`Saved locally, but cloud save failed: ${error.message}`, 'warn');
+    alert(`Saved locally, but cloud save failed: ${error.message}`);
+  }
+
+  resetForm();
 }
 
 function wireNoneOption(groupName) {
@@ -958,6 +1241,13 @@ document.querySelector('#exportJsonBtn').addEventListener('click', exportJson);
 document.querySelector('#exportCsvBtn').addEventListener('click', exportCsv);
 document.querySelector('#importJsonInput').addEventListener('change', importJson);
 
+cloudUi.signInBtn?.addEventListener('click', signIn);
+cloudUi.signUpBtn?.addEventListener('click', signUp);
+cloudUi.logoutBtn?.addEventListener('click', signOut);
+cloudUi.loadCloudBtn?.addEventListener('click', () => loadCloudTrades({ keepLocalIfEmpty: false }));
+cloudUi.uploadLocalBtn?.addEventListener('click', uploadLocalToCloud);
+
 setExampleImages();
 resetForm();
 renderTable();
+initCloudSync();

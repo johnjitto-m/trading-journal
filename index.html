@@ -23,6 +23,38 @@
       </div>
     </header>
 
+    <section class="panel cloud-panel" aria-label="Cloud sync">
+      <div class="cloud-head">
+        <div>
+          <p class="section-kicker">Cloud Sync</p>
+          <h2>Supabase Login</h2>
+          <p id="cloudStatus" class="cloud-status">Cloud not configured yet. Paste your Supabase Project ID and publishable key in app.js.</p>
+        </div>
+        <button id="logoutBtn" class="ghost" type="button" hidden>Logout</button>
+      </div>
+
+      <div id="authControls" class="cloud-grid">
+        <label>
+          Email
+          <input id="authEmail" type="email" placeholder="your@email.com" autocomplete="email" />
+        </label>
+        <label>
+          Password
+          <input id="authPassword" type="password" placeholder="Your Supabase password" autocomplete="current-password" />
+        </label>
+        <div class="cloud-actions">
+          <button id="signInBtn" class="primary" type="button">Sign In</button>
+          <button id="signUpBtn" class="ghost" type="button">Sign Up</button>
+        </div>
+      </div>
+
+      <div id="syncControls" class="cloud-actions" hidden>
+        <button id="loadCloudBtn" class="ghost" type="button">Load Cloud Trades</button>
+        <button id="uploadLocalBtn" class="ghost" type="button">Upload Local to Cloud</button>
+        <small id="syncHint" class="field-hint">Trades save to Supabase when you save/edit/delete. Backup JSON still works as emergency backup.</small>
+      </div>
+    </section>
+
     <main class="layout">
       <section class="panel form-panel">
         <div class="panel-title-row">
@@ -462,6 +494,7 @@
       </tr>
     </template>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="app.js"></script>
   </body>
 </html>
