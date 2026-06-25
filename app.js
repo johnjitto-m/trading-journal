@@ -1028,7 +1028,6 @@ function renderDashboard() {
   if (weekRangeLabel) weekRangeLabel.textContent = `${formatShortDate(start)} – ${formatShortDate(end)} · Monday to Sunday`;
   const weeklyTrades = getCurrentWeekTrades();
   renderStats(weeklyTrades, stats);
-  renderEdgeSummary(weeklyTrades, edgeSummary);
   renderTradeRows(weeklyTrades, tableBody, emptyState);
 }
 
