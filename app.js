@@ -1119,18 +1119,6 @@ function validateHtfStep() {
 }
 
 function validateLtfStep() {
-  if (!getCheckedValues('ltfEntryLevelTags').length) {
-    alert('Please select at least one LTF entry level tag.');
-    return false;
-  }
-  if (!getChecked('beLogic')) {
-    alert('Please select BE logic. Choose None if no BE logic applies.');
-    return false;
-  }
-  if (!getChecked('tradeOutcome')) {
-    alert('Please select trade outcome: BE, SL, or TP.');
-    return false;
-  }
   return true;
 }
 
