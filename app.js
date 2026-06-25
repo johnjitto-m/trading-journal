@@ -535,7 +535,13 @@ function isCountedTrade(trade) {
 }
 
 function getDisplayResult(trade) {
-  return isCountedTrade(trade) ? (trade.result || '-') : 'Not counted';
+  const result = trade.result || 'BE';
+
+  if (isCountedTrade(trade)) {
+    return result;
+  }
+
+  return `Not counted / ${result}`;
 }
 
 function calculatePnL(trade) {
@@ -1113,7 +1119,7 @@ function getResultClass(result) {
   const value = String(result || '').toLowerCase();
   if (value === 'tp' || value === 'win') return 'tp';
   if (value === 'sl' || value === 'loss') return 'sl';
-  if (value === 'not counted') return 'neutral';
+  if (value.includes('not counted')) return 'neutral';
   return 'be';
 }
 
