@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="900" height="506" viewBox="0 0 900 506">
-  <rect width="900" height="506" fill="#0b1220"/>
-  <rect x="40" y="40" width="820" height="426" rx="24" fill="#111827" stroke="#263244" stroke-width="3"/>
-  <text x="70" y="95" fill="#22c55e" font-family="Arial, sans-serif" font-size="32" font-weight="700">Clean CISD</text>
-  <text x="70" y="132" fill="#94a3b8" font-family="Arial, sans-serif" font-size="20">Replace this placeholder with your own TradingView example.</text>
-  <polyline points="80,370 180,315 260,345 340,230 440,280 540,160 660,225 790,120" fill="none" stroke="#e5e7eb" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
-  <rect x="330" y="230" width="140" height="78" fill="#22c55e" opacity="0.18" stroke="#22c55e" stroke-width="3"/>
-  <line x1="80" y1="405" x2="820" y2="405" stroke="#263244" stroke-width="2"/>
-</svg>
