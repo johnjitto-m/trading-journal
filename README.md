@@ -94,3 +94,8 @@ If you already have local trades, click **Upload Local to Cloud** after signing 
 ## Important
 
 Use TradingView snapshot links where possible. Uploaded fallback screenshots are stored inside the trade object and can make cloud rows heavy if the image is large.
+
+
+## v10 Auth Gate
+
+The app now shows only the Supabase sign-in/sign-up screen until the user signs in. After sign-in, the journal opens and the cloud header only shows the signed-in email/status and Logout.

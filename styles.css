@@ -438,3 +438,61 @@ button:disabled {
   .cloud-head { align-items: flex-start; flex-direction: column; }
   .cloud-grid { grid-template-columns: 1fr; }
 }
+
+
+/* Auth gate: show only login/sign-up before cloud session exists */
+.auth-locked .header-actions,
+.auth-locked .layout,
+.auth-locked .strategy-modal,
+.auth-locked .stats-grid,
+.auth-locked .edge-panel {
+  display: none !important;
+}
+
+.auth-locked .app-header {
+  justify-content: center;
+  text-align: center;
+  padding-top: clamp(3rem, 8vh, 6rem);
+}
+
+.auth-locked .app-header > div:first-child {
+  max-width: 900px;
+}
+
+.auth-locked .cloud-panel {
+  width: min(760px, calc(100% - 2rem));
+  margin: 1.2rem auto 3rem;
+  padding: clamp(1.1rem, 3vw, 1.6rem);
+}
+
+.auth-locked .cloud-head {
+  justify-content: center;
+  text-align: center;
+}
+
+.auth-locked #authControls {
+  grid-template-columns: 1fr;
+}
+
+.auth-locked .cloud-actions {
+  justify-content: center;
+}
+
+.app-unlocked .cloud-panel {
+  padding: 0.85rem 1rem;
+}
+
+.app-unlocked .cloud-head {
+  margin-bottom: 0;
+}
+
+.app-unlocked #cloudStatus {
+  margin-top: 0.2rem;
+}
+
+.signed-in-email {
+  margin: 0.25rem 0 0;
+  color: #d1fae5;
+  font-weight: 900;
+  font-size: 0.95rem;
+}

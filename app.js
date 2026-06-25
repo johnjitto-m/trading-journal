@@ -104,6 +104,8 @@ const cloudUi = {
   signInBtn: document.querySelector('#signInBtn'),
   signUpBtn: document.querySelector('#signUpBtn'),
   logoutBtn: document.querySelector('#logoutBtn'),
+  title: document.querySelector('#cloudTitle'),
+  signedInEmail: document.querySelector('#signedInEmail'),
   loadCloudBtn: document.querySelector('#loadCloudBtn'),
   uploadLocalBtn: document.querySelector('#uploadLocalBtn'),
 };
@@ -233,9 +235,17 @@ function setCloudBusy(isBusy) {
 
 function setAuthUi(user) {
   const signedIn = Boolean(user);
+  document.body.classList.toggle('auth-locked', !signedIn);
+  document.body.classList.toggle('app-unlocked', signedIn);
+
+  if (cloudUi.title) cloudUi.title.textContent = signedIn ? 'Supabase Connected' : 'Supabase Login';
   if (cloudUi.authControls) cloudUi.authControls.hidden = signedIn || !cloudReady;
-  if (cloudUi.syncControls) cloudUi.syncControls.hidden = !signedIn;
+  if (cloudUi.syncControls) cloudUi.syncControls.hidden = true;
   if (cloudUi.logoutBtn) cloudUi.logoutBtn.hidden = !signedIn;
+  if (cloudUi.signedInEmail) {
+    cloudUi.signedInEmail.hidden = !signedIn;
+    cloudUi.signedInEmail.textContent = signedIn ? `Signed in as ${user.email}` : '';
+  }
 }
 
 function sanitizeTradeForCloud(trade) {
@@ -283,7 +293,7 @@ async function handleAuthSession(session) {
   setAuthUi(currentUser);
 
   if (!currentUser) {
-    setCloudStatus(cloudReady ? 'Cloud ready. Sign in to sync trades across devices.' : 'Cloud not configured.', 'neutral');
+    setCloudStatus(cloudReady ? 'Sign in or create an account to open your trading journal.' : 'Cloud not configured.', 'neutral');
     return;
   }
 
@@ -349,7 +359,7 @@ async function signOut() {
   setCloudBusy(false);
   currentUser = null;
   setAuthUi(null);
-  setCloudStatus('Signed out. Local browser trades are still available.', 'neutral');
+  setCloudStatus('Signed out. Sign in to open your trading journal.', 'neutral');
 }
 
 async function fetchCloudTrades() {
