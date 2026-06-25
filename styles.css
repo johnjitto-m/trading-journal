@@ -1211,3 +1211,15 @@ table { min-width: 760px; }
     width: 100%;
   }
 }
+
+
+/* v20 saved-order numbering */
+.order-cell {
+  width: 3rem;
+  color: var(--muted);
+  font-weight: 900;
+}
+.compact-table table,
+.research-table-panel table {
+  min-width: 900px;
+}

@@ -2,16 +2,10 @@
 
 Professional browser-based trading journal for HTF FVG → CISD → LTF execution tracking.
 
-## v19
+## v20
 
-- Weekly journal now sorts trades Monday → Sunday / oldest to newest.
-- Trade dates display as day-month-year, e.g. `25-06-2026`.
-- Research Journal now has a sort dropdown:
-  - Newest first
-  - Oldest first
-  - Highest P/L first
-  - Lowest P/L first
-  - Highest RR first
-  - Lowest RR first
-- Added `Next Candle Mitigation` to Question 4 and the research mitigation filter.
-- Keeps clean dashboard, Add Trade modal, View Trade modal, Delete modal, Supabase cloud sync, and simple Trade Status tracking.
+- Weekly Journal now keeps same-day trades in saved order: first saved trade stays above, newly saved trades appear below it.
+- Editing a trade does not change its row order.
+- Added `#` column to Weekly Journal and Research Journal so trades are easy to read as 1, 2, 3, 4.
+- Preserves `createdAt` and `updatedAt` timestamps for stable order and edit tracking.
+- Keeps v19 features: day-month-year dates, Research sort dropdown, `Next Candle Mitigation`, clean dashboard, Add Trade modal, View Trade modal, Delete modal, Supabase cloud sync, and simple Trade Status tracking.

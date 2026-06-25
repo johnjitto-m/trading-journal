@@ -229,7 +229,8 @@ function migrateOldTrade(trade) {
     result: trade.result === 'Win' ? 'TP' : trade.result === 'Loss' ? 'SL' : (trade.result || 'BE'),
     htfNotes: trade.htfNotes || '',
     notes: trade.notes || '',
-    updatedAt: trade.updatedAt || new Date().toISOString(),
+    createdAt: trade.createdAt || trade.created_at || trade.cloudCreatedAt || trade.cloudCreated_at || trade.updatedAt || new Date().toISOString(),
+    updatedAt: trade.updatedAt || trade.updated_at || new Date().toISOString(),
   };
 }
 
@@ -303,6 +304,7 @@ function setAuthUi(user) {
 
 function sanitizeTradeForCloud(trade) {
   const copy = clone(trade);
+  delete copy.cloudCreatedAt;
   delete copy.cloudUpdatedAt;
   return copy;
 }
@@ -419,14 +421,20 @@ async function fetchCloudTrades() {
   if (!supabaseClient || !currentUser) return [];
   const { data, error } = await supabaseClient
     .from('trades')
-    .select('id, trade_data, updated_at')
-    .order('created_at', { ascending: false });
+    .select('id, trade_data, created_at, updated_at')
+    .order('created_at', { ascending: true });
 
   if (error) throw error;
 
   return (data || []).map((row) => ({
-    ...migrateOldTrade({ ...row.trade_data, id: row.id }),
+    ...migrateOldTrade({
+      ...row.trade_data,
+      id: row.id,
+      createdAt: row.trade_data?.createdAt || row.created_at,
+      updatedAt: row.trade_data?.updatedAt || row.updated_at,
+    }),
     id: row.id,
+    cloudCreatedAt: row.created_at,
     cloudUpdatedAt: row.updated_at,
   }));
 }
@@ -805,11 +813,26 @@ function isTradeInRange(trade, start, end) {
   return tradeDate >= start && tradeDate <= end;
 }
 
+function getCreatedTime(trade) {
+  const value = trade.createdAt || trade.cloudCreatedAt || trade.created_at || trade.updatedAt || trade.date;
+  const time = new Date(value).getTime();
+  return Number.isFinite(time) ? time : 0;
+}
+
+function sortByDateThenSavedOrder(list) {
+  return [...list].sort((a, b) => {
+    const dateA = getLocalDate(a.date)?.getTime() || 0;
+    const dateB = getLocalDate(b.date)?.getTime() || 0;
+
+    if (dateA !== dateB) return dateA - dateB;
+
+    return getCreatedTime(a) - getCreatedTime(b);
+  });
+}
+
 function getCurrentWeekTrades() {
   const { start, end } = getCurrentWeekRange();
-  return trades
-    .filter((trade) => isTradeInRange(trade, start, end))
-    .sort((a, b) => new Date(`${a.date}T00:00:00`) - new Date(`${b.date}T00:00:00`));
+  return sortByDateThenSavedOrder(trades.filter((trade) => isTradeInRange(trade, start, end)));
 }
 
 function getFilteredTrades() {
@@ -880,16 +903,18 @@ function getFilteredTrades() {
 function sortFilteredTrades(list) {
   const sortValue = sortFilter?.value || 'newest';
   return [...list].sort((a, b) => {
-    const dateA = new Date(`${a.date}T00:00:00`);
-    const dateB = new Date(`${b.date}T00:00:00`);
+    const dateA = getLocalDate(a.date)?.getTime() || 0;
+    const dateB = getLocalDate(b.date)?.getTime() || 0;
+    const createdA = getCreatedTime(a);
+    const createdB = getCreatedTime(b);
 
-    if (sortValue === 'oldest') return dateA - dateB;
-    if (sortValue === 'pnlHigh') return calculatePnL(b) - calculatePnL(a);
-    if (sortValue === 'pnlLow') return calculatePnL(a) - calculatePnL(b);
-    if (sortValue === 'rrHigh') return Number(b.rr || 0) - Number(a.rr || 0);
-    if (sortValue === 'rrLow') return Number(a.rr || 0) - Number(b.rr || 0);
+    if (sortValue === 'oldest') return (dateA - dateB) || (createdA - createdB);
+    if (sortValue === 'pnlHigh') return (calculatePnL(b) - calculatePnL(a)) || (dateA - dateB) || (createdA - createdB);
+    if (sortValue === 'pnlLow') return (calculatePnL(a) - calculatePnL(b)) || (dateA - dateB) || (createdA - createdB);
+    if (sortValue === 'rrHigh') return (Number(b.rr || 0) - Number(a.rr || 0)) || (dateA - dateB) || (createdA - createdB);
+    if (sortValue === 'rrLow') return (Number(a.rr || 0) - Number(b.rr || 0)) || (dateA - dateB) || (createdA - createdB);
 
-    return dateB - dateA;
+    return (dateB - dateA) || (createdA - createdB);
   });
 }
 
@@ -1061,9 +1086,10 @@ function renderTradeRows(list, targetBody, targetEmpty) {
   targetBody.innerHTML = '';
   if (targetEmpty) targetEmpty.style.display = list.length ? 'none' : 'block';
 
-  list.forEach((trade) => {
+  list.forEach((trade, index) => {
     const row = rowTemplate.content.cloneNode(true);
 
+    row.querySelector('.order-cell').textContent = index + 1;
     row.querySelector('.date-cell').innerHTML = `${escapeHtml(formatDateDMY(trade.date))}<br><small>${escapeHtml(trade.day || getDayName(trade.date))}</small>`;
     row.querySelector('.pair-cell').textContent = trade.pair || '-';
     row.querySelector('.direction-cell').innerHTML = `<span class="direction-badge ${String(trade.direction || '').toLowerCase()}">${escapeHtml(trade.direction || '-')}</span>`;
@@ -1235,6 +1261,10 @@ function mergeLegacyRetracementTags(trade = {}) {
 function getFormTrade() {
   const htfLinks = chartLinks.htf.map((item) => ({ label: item.label.trim(), url: item.url.trim() }));
   const ltfLinks = chartLinks.ltf.map((item) => ({ label: item.label.trim(), url: item.url.trim() }));
+  const existingTrade = fields.tradeId.value
+    ? trades.find((trade) => trade.id === fields.tradeId.value)
+    : null;
+  const nowIso = new Date().toISOString();
 
   return {
     id: fields.tradeId.value || crypto.randomUUID(),
@@ -1264,7 +1294,8 @@ function getFormTrade() {
     rr: Number(fields.rr.value),
     htfNotes: fields.htfNotes.value.trim(),
     notes: fields.notes.value.trim(),
-    updatedAt: new Date().toISOString(),
+    createdAt: existingTrade?.createdAt || existingTrade?.cloudCreatedAt || nowIso,
+    updatedAt: nowIso,
   };
 }
 
@@ -1586,7 +1617,8 @@ function importJson(event) {
       trades = importedTrades.map((trade) => ({
         ...migrateOldTrade(trade),
         id: trade.id || crypto.randomUUID(),
-        updatedAt: trade.updatedAt || new Date().toISOString(),
+        createdAt: trade.createdAt || trade.created_at || trade.updatedAt || new Date().toISOString(),
+        updatedAt: trade.updatedAt || trade.updated_at || new Date().toISOString(),
       }));
       saveTrades();
       renderTable();
