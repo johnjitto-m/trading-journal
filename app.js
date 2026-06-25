@@ -1,8 +1,8 @@
 // Supabase Cloud Sync config
 // Paste your own values here. Project URL is auto-built from Project ID.
 // Do NOT paste service_role keys, secret keys, or database password here.
-const SUPABASE_PROJECT_ID = 'PASTE_YOUR_PROJECT_ID_HERE';
-const SUPABASE_PUBLISHABLE_KEY = 'PASTE_YOUR_PUBLISHABLE_KEY_HERE';
+const SUPABASE_PROJECT_ID = 'wlkslzqjivvsemmyengj';
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_KbjXNsBhWb0ZCDDR-74-KA_NjtwhVM6';
 
 const STORAGE_KEY = 'john-trading-journal-v6-supabase';
 const OLD_STORAGE_KEYS = ['john-trading-journal-v5', 'john-trading-journal-v4', 'john-trading-journal-v3', 'john-trading-journal-v2', 'john-trading-journal-v1'];
