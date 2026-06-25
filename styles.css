@@ -573,3 +573,50 @@ button:disabled {
     gap: 0.2rem;
   }
 }
+
+/* Hide login form completely after Supabase session is active */
+[hidden] {
+  display: none !important;
+}
+
+.app-unlocked #authControls,
+.app-unlocked #authControls *,
+.app-unlocked .auth-card-grid,
+.app-unlocked .auth-action-row {
+  display: none !important;
+}
+
+/* Clean professional connected cloud bar */
+.app-unlocked .cloud-panel {
+  padding: 0.9rem 1.1rem;
+}
+
+.app-unlocked .cloud-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0;
+}
+
+.app-unlocked .cloud-head > div {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+}
+
+.app-unlocked .section-kicker,
+.app-unlocked #cloudTitle,
+.app-unlocked #signedInEmail,
+.app-unlocked #cloudStatus {
+  margin: 0;
+}
+
+.app-unlocked #cloudTitle {
+  font-size: 1rem;
+}
+
+.app-unlocked #cloudStatus {
+  font-size: 0.9rem;
+}
