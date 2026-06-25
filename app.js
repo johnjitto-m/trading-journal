@@ -40,10 +40,25 @@ const form = document.querySelector('#tradeForm');
 const tableBody = document.querySelector('#tradesTable');
 const rowTemplate = document.querySelector('#tradeRowTemplate');
 const emptyState = document.querySelector('#emptyState');
+const researchTableBody = document.querySelector('#researchTradesTable');
+const researchEmptyState = document.querySelector('#researchEmptyState');
 const searchInput = document.querySelector('#searchInput');
 const pairFilter = document.querySelector('#pairFilter');
 const resultFilter = document.querySelector('#resultFilter');
+const sessionFilter = document.querySelector('#sessionFilter');
+const htfFilter = document.querySelector('#htfFilter');
+const fvgFilter = document.querySelector('#fvgFilter');
+const cisdFilter = document.querySelector('#cisdFilter');
+const dateFromFilter = document.querySelector('#dateFromFilter');
+const dateToFilter = document.querySelector('#dateToFilter');
+const clearResearchFiltersBtn = document.querySelector('#clearResearchFiltersBtn');
+const openResearchBtn = document.querySelector('#openResearchBtn');
+const backDashboardBtn = document.querySelector('#backDashboardBtn');
+const dashboardView = document.querySelector('#dashboardView');
+const researchView = document.querySelector('#researchView');
+const weekRangeLabel = document.querySelector('#weekRangeLabel');
 const edgeSummary = document.querySelector('#edgeSummary');
+const researchEdgeSummary = document.querySelector('#researchEdgeSummary');
 
 const basicStep = document.querySelector('#basicStep');
 const htfStep = document.querySelector('#htfStep');
@@ -93,6 +108,13 @@ const stats = {
   winRate: document.querySelector('#winRate'),
   totalTrades: document.querySelector('#totalTrades'),
   avgRR: document.querySelector('#avgRR'),
+};
+
+const researchStats = {
+  totalPnL: document.querySelector('#researchTotalPnL'),
+  winRate: document.querySelector('#researchWinRate'),
+  totalTrades: document.querySelector('#researchTotalTrades'),
+  avgRR: document.querySelector('#researchAvgRR'),
 };
 
 const cloudUi = {
@@ -690,17 +712,65 @@ function updateChartPreview(type) {
   }
 }
 
+function getLocalDate(dateValue) {
+  if (!dateValue) return null;
+  return new Date(`${dateValue}T00:00:00`);
+}
+
+function getCurrentWeekRange() {
+  const now = new Date();
+  const todayLocal = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const day = todayLocal.getDay(); // Sunday = 0, Monday = 1
+  const diffToMonday = day === 0 ? -6 : 1 - day;
+  const start = new Date(todayLocal);
+  start.setDate(todayLocal.getDate() + diffToMonday);
+  const end = new Date(start);
+  end.setDate(start.getDate() + 6);
+  return { start, end };
+}
+
+function formatShortDate(date) {
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function isTradeInRange(trade, start, end) {
+  const tradeDate = getLocalDate(trade.date);
+  if (!tradeDate) return false;
+  return tradeDate >= start && tradeDate <= end;
+}
+
+function getCurrentWeekTrades() {
+  const { start, end } = getCurrentWeekRange();
+  return trades
+    .filter((trade) => isTradeInRange(trade, start, end))
+    .sort((a, b) => new Date(b.date) - new Date(a.date));
+}
+
 function getFilteredTrades() {
-  const query = searchInput.value.trim().toLowerCase();
-  const pair = pairFilter.value;
-  const result = resultFilter.value;
+  const query = searchInput?.value.trim().toLowerCase() || '';
+  const pair = pairFilter?.value || 'All';
+  const result = resultFilter?.value || 'All';
+  const session = sessionFilter?.value || 'All';
+  const htf = htfFilter?.value || 'All';
+  const fvg = fvgFilter?.value || 'All';
+  const cisd = cisdFilter?.value || 'All';
+  const dateFrom = dateFromFilter?.value || '';
+  const dateTo = dateToFilter?.value || '';
 
   return trades
     .filter((trade) => (pair === 'All' ? true : trade.pair === pair))
     .filter((trade) => (result === 'All' ? true : trade.result === result))
+    .filter((trade) => (session === 'All' ? true : trade.session === session))
+    .filter((trade) => (htf === 'All' ? true : trade.htfTimeframe === htf))
+    .filter((trade) => (fvg === 'All' ? true : trade.fvgOrder === fvg))
+    .filter((trade) => (cisd === 'All' ? true : trade.cisdType === cisd))
+    .filter((trade) => (dateFrom ? trade.date >= dateFrom : true))
+    .filter((trade) => (dateTo ? trade.date <= dateTo : true))
     .filter((trade) => {
       if (!query) return true;
       return [
+        trade.date,
+        trade.day,
         trade.pair,
         trade.direction,
         trade.session,
@@ -712,6 +782,7 @@ function getFilteredTrades() {
         ...(trade.htfRetracementTags || []),
         ...(trade.ltfEntryLevelTags || []),
         trade.beLogic,
+        trade.result,
         ...(trade.htfChartLinks || []).flatMap((item) => [item.label, item.url]),
         ...(trade.ltfChartLinks || []).flatMap((item) => [item.label, item.url]),
         trade.htfNotes,
@@ -724,7 +795,7 @@ function getFilteredTrades() {
     .sort((a, b) => new Date(b.date) - new Date(a.date));
 }
 
-function renderStats(list = trades) {
+function renderStats(list = trades, target = stats) {
   const total = list.length;
   const wins = list.filter((trade) => trade.result === 'TP' || trade.result === 'Win').length;
   const losses = list.filter((trade) => trade.result === 'SL' || trade.result === 'Loss').length;
@@ -735,16 +806,17 @@ function renderStats(list = trades) {
     : 0;
   const winRate = wins + losses ? (wins / (wins + losses)) * 100 : 0;
 
-  stats.totalPnL.textContent = money(totalPnL);
-  stats.totalPnL.className = totalPnL >= 0 ? 'pnl-positive' : 'pnl-negative';
-  stats.winRate.textContent = `${winRate.toFixed(1)}%`;
-  stats.totalTrades.textContent = total;
-  stats.avgRR.textContent = `${avgRR.toFixed(2)}R`;
+  if (!target?.totalPnL) return;
+  target.totalPnL.textContent = money(totalPnL);
+  target.totalPnL.className = totalPnL >= 0 ? 'pnl-positive' : 'pnl-negative';
+  target.winRate.textContent = `${winRate.toFixed(1)}%`;
+  target.totalTrades.textContent = total;
+  target.avgRR.textContent = `${avgRR.toFixed(2)}R`;
 }
 
-function summarizeBy(fieldName) {
+function summarizeBy(fieldName, list = trades) {
   const groups = new Map();
-  trades.forEach((trade) => {
+  list.forEach((trade) => {
     const values = Array.isArray(trade[fieldName]) ? trade[fieldName] : [trade[fieldName] || 'Not tagged'];
     values.forEach((key) => {
       const current = groups.get(key) || { total: 0, wins: 0, losses: 0 };
@@ -764,22 +836,23 @@ function summarizeBy(fieldName) {
     .sort((a, b) => b.winRate - a.winRate || b.total - a.total);
 }
 
-function renderEdgeSummary() {
-  const total = trades.length;
+function renderEdgeSummary(list = trades, target = edgeSummary) {
+  if (!target) return;
+  const total = list.length;
   if (!total) {
-    edgeSummary.innerHTML = `
-      <article class="edge-card"><span>Status</span><strong>No data yet</strong><small>Add HTF + LTF tagged trades to see similarities.</small></article>
+    target.innerHTML = `
+      <article class="edge-card"><span>Status</span><strong>No data yet</strong><small>Add tagged trades to see similarities.</small></article>
       <article class="edge-card"><span>Goal</span><strong>Find your repeatable setup</strong><small>First/Second FVG, CISD quality, mitigation/retracement, entry level and BE logic.</small></article>
       <article class="edge-card"><span>Minimum</span><strong>30–50 trades</strong><small>That is when the patterns become more useful.</small></article>
     `;
     return;
   }
 
-  const fvg = summarizeBy('fvgOrder')[0];
-  const retracement = summarizeBy('htfRetracementTags')[0];
-  const be = summarizeBy('beLogic')[0];
+  const fvg = summarizeBy('fvgOrder', list)[0];
+  const retracement = summarizeBy('htfRetracementTags', list)[0];
+  const be = summarizeBy('beLogic', list)[0];
 
-  edgeSummary.innerHTML = [
+  target.innerHTML = [
     buildEdgeCard('Best FVG Order', fvg),
     buildEdgeCard('Best Mitigation Tag', retracement),
     buildEdgeCard('Best BE Logic', be),
@@ -797,12 +870,12 @@ function buildEdgeCard(title, item) {
   `;
 }
 
-function renderTable() {
-  const filteredTrades = getFilteredTrades();
-  tableBody.innerHTML = '';
-  emptyState.style.display = filteredTrades.length ? 'none' : 'block';
+function renderTradeRows(list, targetBody, targetEmpty) {
+  if (!targetBody) return;
+  targetBody.innerHTML = '';
+  if (targetEmpty) targetEmpty.style.display = list.length ? 'none' : 'block';
 
-  filteredTrades.forEach((trade) => {
+  list.forEach((trade) => {
     const row = rowTemplate.content.cloneNode(true);
     const pnl = calculatePnL(trade);
     const htfLinks = normalizeChartLinks(trade.htfChartLinks, 'htf');
@@ -839,11 +912,53 @@ function renderTable() {
     row.querySelector('.edit-btn').addEventListener('click', () => editTrade(trade.id));
     row.querySelector('.delete-btn').addEventListener('click', () => deleteTrade(trade.id));
 
-    tableBody.appendChild(row);
+    targetBody.appendChild(row);
   });
+}
 
-  renderStats(filteredTrades);
-  renderEdgeSummary();
+function renderDashboard() {
+  const { start, end } = getCurrentWeekRange();
+  if (weekRangeLabel) weekRangeLabel.textContent = `${formatShortDate(start)} – ${formatShortDate(end)} · Monday to Sunday`;
+  const weeklyTrades = getCurrentWeekTrades();
+  renderStats(weeklyTrades, stats);
+  renderEdgeSummary(weeklyTrades, edgeSummary);
+  renderTradeRows(weeklyTrades, tableBody, emptyState);
+}
+
+function renderResearch() {
+  const filteredTrades = getFilteredTrades();
+  renderStats(filteredTrades, researchStats);
+  renderEdgeSummary(filteredTrades, researchEdgeSummary);
+  renderTradeRows(filteredTrades, researchTableBody, researchEmptyState);
+}
+
+function renderTable() {
+  renderDashboard();
+  renderResearch();
+}
+
+function setAppView(view) {
+  const showResearch = view === 'research';
+  if (dashboardView) dashboardView.hidden = showResearch;
+  if (researchView) researchView.hidden = !showResearch;
+  document.body.classList.toggle('research-mode', showResearch);
+  if (showResearch) {
+    renderResearch();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } else {
+    renderDashboard();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
+function clearResearchFilters() {
+  if (searchInput) searchInput.value = '';
+  [pairFilter, resultFilter, sessionFilter, htfFilter, fvgFilter, cisdFilter].forEach((filter) => {
+    if (filter) filter.value = 'All';
+  });
+  if (dateFromFilter) dateFromFilter.value = '';
+  if (dateToFilter) dateToFilter.value = '';
+  renderResearch();
 }
 
 function shortList(values = []) {
@@ -1237,9 +1352,18 @@ document.querySelector('#addHtfChartLinkBtn').addEventListener('click', () => ad
 document.querySelector('#addLtfChartLinkBtn').addEventListener('click', () => addChartLink('ltf'));
 wireNoneOption('htfRetracementTags');
 
-searchInput.addEventListener('input', renderTable);
-pairFilter.addEventListener('change', renderTable);
-resultFilter.addEventListener('change', renderTable);
+searchInput?.addEventListener('input', renderResearch);
+pairFilter?.addEventListener('change', renderResearch);
+resultFilter?.addEventListener('change', renderResearch);
+sessionFilter?.addEventListener('change', renderResearch);
+htfFilter?.addEventListener('change', renderResearch);
+fvgFilter?.addEventListener('change', renderResearch);
+cisdFilter?.addEventListener('change', renderResearch);
+dateFromFilter?.addEventListener('change', renderResearch);
+dateToFilter?.addEventListener('change', renderResearch);
+clearResearchFiltersBtn?.addEventListener('click', clearResearchFilters);
+openResearchBtn?.addEventListener('click', () => setAppView('research'));
+backDashboardBtn?.addEventListener('click', () => setAppView('dashboard'));
 document.querySelector('#resetFormBtn').addEventListener('click', resetForm);
 document.querySelector('#exportJsonBtn').addEventListener('click', exportJson);
 document.querySelector('#exportCsvBtn').addEventListener('click', exportCsv);

@@ -574,49 +574,81 @@ button:disabled {
   }
 }
 
-/* Hide login form completely after Supabase session is active */
-[hidden] {
-  display: none !important;
+/* v12 dashboard/research split */
+[hidden] { display: none !important; }
+
+.app-view[hidden] { display: none !important; }
+
+.dashboard-log-panel .filters-row {
+  align-items: flex-start;
 }
 
-.app-unlocked #authControls,
-.app-unlocked #authControls *,
-.app-unlocked .auth-card-grid,
-.app-unlocked .auth-action-row {
-  display: none !important;
+.dashboard-log-panel .table-wrap {
+  max-height: 520px;
+  overflow: auto;
 }
 
-/* Clean professional connected cloud bar */
-.app-unlocked .cloud-panel {
-  padding: 0.9rem 1.1rem;
+.research-view {
+  padding: 1rem clamp(1rem, 4vw, 3rem) 3rem;
 }
 
-.app-unlocked .cloud-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.research-shell {
+  display: grid;
   gap: 1rem;
+}
+
+.research-title-row {
+  align-items: flex-start;
   margin-bottom: 0;
 }
 
-.app-unlocked .cloud-head > div {
-  display: flex;
-  align-items: center;
-  gap: 0.9rem;
-  flex-wrap: wrap;
+.small-subtitle {
+  margin-top: 0.35rem;
+  font-size: 0.95rem;
 }
 
-.app-unlocked .section-kicker,
-.app-unlocked #cloudTitle,
-.app-unlocked #signedInEmail,
-.app-unlocked #cloudStatus {
-  margin: 0;
+.embedded-panel {
+  box-shadow: none;
+  background: rgba(11, 18, 32, 0.48);
 }
 
-.app-unlocked #cloudTitle {
-  font-size: 1rem;
+.research-filters {
+  display: grid;
+  grid-template-columns: minmax(240px, 2fr) repeat(6, minmax(150px, 1fr));
+  gap: 0.75rem;
+  align-items: end;
+  margin-bottom: 1rem;
 }
 
-.app-unlocked #cloudStatus {
-  font-size: 0.9rem;
+.research-filters .date-filter-label {
+  min-width: 150px;
+}
+
+.research-filters #clearResearchFiltersBtn {
+  min-height: 46px;
+}
+
+.research-table-panel .table-wrap {
+  max-height: 70vh;
+  overflow: auto;
+}
+
+.research-mode .form-panel {
+  position: static;
+}
+
+@media (max-width: 1200px) {
+  .research-filters {
+    grid-template-columns: repeat(3, minmax(160px, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .research-filters {
+    grid-template-columns: 1fr;
+  }
+  .research-title-row,
+  .dashboard-log-panel .filters-row {
+    display: grid;
+  }
 }

@@ -50,7 +50,7 @@
       </div>
     </section>
 
-    <main class="layout">
+    <main id="dashboardView" class="layout app-view active">
       <section class="panel form-panel">
         <div class="panel-title-row">
           <div>
@@ -138,19 +138,19 @@
       <section class="content-area">
         <section class="stats-grid" aria-label="Trading stats">
           <article class="stat-card">
-            <span>Total P/L</span>
+            <span>This Week P/L</span>
             <strong id="totalPnL">$0</strong>
           </article>
           <article class="stat-card">
-            <span>Win Rate</span>
+            <span>This Week Win Rate</span>
             <strong id="winRate">0%</strong>
           </article>
           <article class="stat-card">
-            <span>Total Trades</span>
+            <span>This Week Trades</span>
             <strong id="totalTrades">0</strong>
           </article>
           <article class="stat-card">
-            <span>Average RR</span>
+            <span>This Week Avg RR</span>
             <strong id="avgRR">0R</strong>
           </article>
         </section>
@@ -158,42 +158,24 @@
         <section class="panel edge-panel">
           <div class="panel-title-row tight">
             <div>
-              <p class="section-kicker">Strategy Edge Snapshot</p>
-              <h2>Winning vs Losing Similarities</h2>
+              <p class="section-kicker">This Week Edge Snapshot</p>
+              <h2>Weekly Winning vs Losing Similarities</h2>
             </div>
           </div>
           <div id="edgeSummary" class="edge-grid"></div>
         </section>
 
-        <section class="panel">
+        <section class="panel dashboard-log-panel">
           <div class="panel-title-row filters-row">
             <div>
-              <p class="section-kicker">Journal</p>
-              <h2>Trade Log</h2>
+              <p class="section-kicker">Weekly Journal</p>
+              <h2>This Week's Trades</h2>
+              <small id="weekRangeLabel" class="field-hint">Monday to Sunday</small>
             </div>
-            <div class="filters">
-              <input id="searchInput" type="search" placeholder="Search pair, CISD, FVG, LTF tags..." />
-              <select id="pairFilter">
-                <option value="All">All Pairs</option>
-                <option value="EURUSD">EURUSD</option>
-                <option value="GBPUSD">GBPUSD</option>
-                <option value="XAUUSD">XAUUSD</option>
-                <option value="XAGUSD">XAGUSD</option>
-                <option value="BTCUSD">BTCUSD</option>
-                <option value="NQ">NQ</option>
-                <option value="ES">ES</option>
-                <option value="Other">Other</option>
-              </select>
-              <select id="resultFilter">
-                <option value="All">All Results</option>
-                <option value="TP">TP</option>
-                <option value="SL">SL</option>
-                <option value="BE">BE</option>
-              </select>
-            </div>
+            <button id="openResearchBtn" class="ghost" type="button">View All Trades / Research Journal</button>
           </div>
 
-          <div class="table-wrap">
+          <div class="table-wrap compact-table">
             <table>
               <thead>
                 <tr>
@@ -212,10 +194,131 @@
             </table>
           </div>
 
-          <p id="emptyState" class="empty-state">No trades yet. Add your first HTF + LTF FVG setup from the left panel.</p>
+          <p id="emptyState" class="empty-state">No trades this week yet. Add your first HTF + LTF FVG setup from the left panel.</p>
         </section>
       </section>
     </main>
+
+    <section id="researchView" class="app-view research-view" hidden>
+      <section class="panel research-shell">
+        <div class="panel-title-row research-title-row">
+          <div>
+            <p class="section-kicker">Trade Research</p>
+            <h2>All Trades Database</h2>
+            <p class="subtitle small-subtitle">Search, filter, and study your winning and losing FVG model data.</p>
+          </div>
+          <button id="backDashboardBtn" class="ghost" type="button">Back to Dashboard</button>
+        </div>
+
+        <section class="stats-grid research-stats" aria-label="Research stats">
+          <article class="stat-card">
+            <span>Filtered P/L</span>
+            <strong id="researchTotalPnL">$0</strong>
+          </article>
+          <article class="stat-card">
+            <span>Filtered Win Rate</span>
+            <strong id="researchWinRate">0%</strong>
+          </article>
+          <article class="stat-card">
+            <span>Filtered Trades</span>
+            <strong id="researchTotalTrades">0</strong>
+          </article>
+          <article class="stat-card">
+            <span>Filtered Avg RR</span>
+            <strong id="researchAvgRR">0R</strong>
+          </article>
+        </section>
+
+        <section class="panel edge-panel embedded-panel">
+          <div class="panel-title-row tight">
+            <div>
+              <p class="section-kicker">Filtered Edge Snapshot</p>
+              <h2>Strategy Similarities</h2>
+            </div>
+          </div>
+          <div id="researchEdgeSummary" class="edge-grid"></div>
+        </section>
+
+        <section class="panel embedded-panel research-table-panel">
+          <div class="panel-title-row filters-row">
+            <div>
+              <p class="section-kicker">Database</p>
+              <h2>All Trade Data</h2>
+            </div>
+          </div>
+
+          <div class="research-filters">
+            <input id="searchInput" type="search" placeholder="Search pair, CISD, FVG, LTF tags, notes, chart label..." />
+            <select id="pairFilter">
+              <option value="All">All Pairs</option>
+              <option value="EURUSD">EURUSD</option>
+              <option value="GBPUSD">GBPUSD</option>
+              <option value="XAUUSD">XAUUSD</option>
+              <option value="XAGUSD">XAGUSD</option>
+              <option value="BTCUSD">BTCUSD</option>
+              <option value="NQ">NQ</option>
+              <option value="ES">ES</option>
+              <option value="Other">Other</option>
+            </select>
+            <select id="resultFilter">
+              <option value="All">All Results</option>
+              <option value="TP">TP</option>
+              <option value="SL">SL</option>
+              <option value="BE">BE</option>
+            </select>
+            <select id="sessionFilter">
+              <option value="All">All Sessions</option>
+              <option value="London">London</option>
+              <option value="New York">New York</option>
+              <option value="Asia">Asia</option>
+              <option value="London + NY">London + NY</option>
+            </select>
+            <select id="htfFilter">
+              <option value="All">All HTF</option>
+              <option value="15m">15m</option>
+              <option value="1H">1H</option>
+              <option value="4H">4H</option>
+              <option value="1D">1D</option>
+            </select>
+            <select id="fvgFilter">
+              <option value="All">All FVG Orders</option>
+              <option value="First FVG">First FVG</option>
+              <option value="Second FVG">Second FVG</option>
+            </select>
+            <select id="cisdFilter">
+              <option value="All">All CISD Types</option>
+              <option value="Clean CISD">Clean CISD</option>
+              <option value="Messy CISD">Messy CISD</option>
+              <option value="Irregular CISD">Irregular CISD</option>
+            </select>
+            <label class="date-filter-label">From <input id="dateFromFilter" type="date" /></label>
+            <label class="date-filter-label">To <input id="dateToFilter" type="date" /></label>
+            <button id="clearResearchFiltersBtn" class="ghost" type="button">Clear Filters</button>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Pair</th>
+                  <th>Dir</th>
+                  <th>HTF → LTF</th>
+                  <th>Setup Pattern</th>
+                  <th>Result</th>
+                  <th>RR</th>
+                  <th>P/L</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="researchTradesTable"></tbody>
+            </table>
+          </div>
+
+          <p id="researchEmptyState" class="empty-state">No trades match the current filters.</p>
+        </section>
+      </section>
+    </section>
 
     <section id="htfStep" class="strategy-modal form-step" role="dialog" aria-modal="true" aria-hidden="true">
       <div class="modal-topbar">
