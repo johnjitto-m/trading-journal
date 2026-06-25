@@ -90,7 +90,6 @@
             <table>
               <thead>
                 <tr>
-                  <th>#</th>
                   <th>Date</th>
                   <th>Pair</th>
                   <th>Direction</th>
@@ -221,7 +220,6 @@
             <select id="mitigationFilter">
               <option value="All">All Mitigation Tags</option>
               <option value="None">None</option>
-              <option value="Next Candle Mitigation">Next Candle Mitigation</option>
               <option value="Second FVG mitigation without failing the first FVG">Second FVG mitigation without failing the first FVG</option>
               <option value="Second FVG mitigation after filling the first FVG">Second FVG mitigation after filling the first FVG</option>
               <option value="Coming from FVG">Coming from FVG</option>
@@ -232,6 +230,7 @@
               <option value="Coming from counter SMT">Coming from counter SMT</option>
               <option value="Single candle retracement">Single candle retracement</option>
               <option value="Aggressive retracement">Aggressive retracement</option>
+              <option value="Next Candle Mitigation">Next Candle Mitigation</option>
             </select>
             <select id="entryLevelFilter">
               <option value="All">All Entry Levels</option>
@@ -247,13 +246,13 @@
               <option value="None">None</option>
             </select>
             <select id="sortFilter">
-              <option value="newest">Newest first</option>
-              <option value="oldest">Oldest first</option>
-              <option value="pnlHigh">Highest P/L first</option>
-              <option value="pnlLow">Lowest P/L first</option>
-              <option value="rrHigh">Highest RR first</option>
-              <option value="rrLow">Lowest RR first</option>
-            </select>
+  <option value="newest">Newest first</option>
+  <option value="oldest">Oldest first</option>
+  <option value="pnlHigh">Highest P/L first</option>
+  <option value="pnlLow">Lowest P/L first</option>
+  <option value="rrHigh">Highest RR first</option>
+  <option value="rrLow">Lowest RR first</option>
+</select>
             <label class="date-filter-label">From <input id="dateFromFilter" type="date" /></label>
             <label class="date-filter-label">To <input id="dateToFilter" type="date" /></label>
             <button id="clearResearchFiltersBtn" class="ghost" type="button">Clear Filters</button>
@@ -263,7 +262,6 @@
             <table>
               <thead>
                 <tr>
-                  <th>#</th>
                   <th>Date</th>
                   <th>Pair</th>
                   <th>Direction</th>
@@ -515,7 +513,6 @@
             <p class="question-help">Select all that apply. If you choose None, the other tags will turn off.</p>
             <div class="tag-grid">
               <label class="tag-choice"><input type="checkbox" name="htfRetracementTags" value="None" data-none-option="htfRetracementTags" /><span>None</span></label>
-              <label class="tag-choice"><input type="checkbox" name="htfRetracementTags" value="Next Candle Mitigation" /><span>Next Candle Mitigation</span></label>
               <label class="tag-choice"><input type="checkbox" name="htfRetracementTags" value="Second FVG mitigation without failing the first FVG" /><span>Second FVG mitigation without failing the first FVG</span></label>
               <label class="tag-choice"><input type="checkbox" name="htfRetracementTags" value="Second FVG mitigation after filling the first FVG" /><span>Second FVG mitigation after filling the first FVG</span></label>
               <label class="tag-choice"><input type="checkbox" name="htfRetracementTags" value="Coming from FVG" /><span>Coming from FVG</span></label>
@@ -526,6 +523,7 @@
               <label class="tag-choice"><input type="checkbox" name="htfRetracementTags" value="Coming from counter SMT" /><span>Coming from counter SMT</span></label>
               <label class="tag-choice"><input type="checkbox" name="htfRetracementTags" value="Single candle retracement" /><span>Single candle retracement</span></label>
               <label class="tag-choice"><input type="checkbox" name="htfRetracementTags" value="Aggressive retracement" /><span>Aggressive retracement</span></label>
+              <label class="tag-choice"><input type="checkbox" name="htfRetracementTags" value="Next Candle Mitigation" /><span>Next Candle Mitigation</span></label>
             </div>
           </div>
 
@@ -702,7 +700,6 @@
 
     <template id="tradeRowTemplate">
       <tr>
-        <td class="order-cell"></td>
         <td class="date-cell"></td>
         <td class="pair-cell"></td>
         <td class="direction-cell"></td>
