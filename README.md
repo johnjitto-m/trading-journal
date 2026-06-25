@@ -51,3 +51,9 @@ git push origin main
 ```
 
 After GitHub Pages deploys, hard refresh the site with `Ctrl + Shift + R`.
+
+
+## v13 fixes
+
+- Delete now removes the trade from Supabase before removing it locally.
+- Edit now starts from Basic Info, so date, pair, direction, session, HTF/LTF, HTF data, LTF data, and outcome can all be changed.

@@ -445,7 +445,12 @@ async function saveCloudTrade(trade) {
 
 async function deleteCloudTrade(id) {
   if (!supabaseClient || !currentUser) return;
-  const { error } = await supabaseClient.from('trades').delete().eq('id', id);
+
+  const { error } = await supabaseClient
+    .from('trades')
+    .delete()
+    .eq('id', id);
+
   if (error) throw error;
 }
 
@@ -1101,31 +1106,42 @@ function editTrade(id) {
   fields.rr.value = trade.rr ?? 0;
   fields.htfNotes.value = trade.htfNotes || '';
   fields.notes.value = trade.notes || '';
+
   updateDayAndLtf();
   renderChartLinks('htf');
   renderChartLinks('ltf');
   updateChartPreview('htf');
   updateChartPreview('ltf');
-  setStep('htf');
+
+  setAppView('dashboard');
+  setStep('basic');
+  if (formTitle) formTitle.textContent = 'Editing Trade — Basic Info';
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 async function deleteTrade(id) {
   const trade = trades.find((item) => item.id === id);
   if (!trade) return;
-  const ok = confirm(`Delete ${trade.pair} trade from ${trade.date}?`);
+  const ok = confirm(`Delete ${trade.pair} trade from ${trade.date}? This will also delete it from Supabase cloud.`);
   if (!ok) return;
 
-  trades = trades.filter((item) => item.id !== id);
-  saveTrades();
-  renderTable();
-
   try {
-    await deleteCloudTrade(id);
-    if (currentUser) setCloudStatus('Connected. Trade deleted from cloud.', 'good');
+    if (currentUser) {
+      setCloudStatus('Deleting trade from cloud...', 'neutral');
+      await deleteCloudTrade(id);
+    }
+
+    trades = trades.filter((item) => item.id !== id);
+    saveTrades();
+    renderTable();
+
+    if (currentUser) {
+      setCloudStatus(`Connected. Trade deleted. ${trades.length} trade${trades.length === 1 ? '' : 's'} synced.`, 'good');
+    }
   } catch (error) {
     console.error(error);
-    setCloudStatus(`Local delete worked, but cloud delete failed: ${error.message}`, 'warn');
+    setCloudStatus(`Delete failed: ${error.message}`, 'warn');
+    alert(`Delete failed: ${error.message}. The trade was not removed locally because cloud delete failed.`);
   }
 }
 
