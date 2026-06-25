@@ -1017,3 +1017,89 @@ table { min-width: 760px; }
   .details-overview-grid,
   .details-grid { grid-template-columns: 1fr; }
 }
+
+
+/* Wider 16:9 style Trade Details modal */
+.details-card {
+  width: min(1500px, 94vw);
+  height: min(844px, 88vh);
+  max-height: none;
+  border-radius: 1.35rem;
+}
+
+.details-body {
+  display: grid;
+  grid-template-columns: 0.9fr 1.15fr 0.95fr;
+  align-content: start;
+  gap: 1rem;
+  overflow: auto;
+  padding: 1rem 1.15rem;
+}
+
+/* Result/Risk/RR/P/L row full width */
+.details-overview-grid {
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+/* Basic Info, HTF, LTF sections sit side-by-side */
+.details-body > .details-section {
+  min-width: 0;
+  height: fit-content;
+}
+
+/* Basic info cards can stay compact */
+.details-body > .details-section:nth-of-type(2) .details-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* HTF and LTF detail cards stack cleaner inside columns */
+.details-body > .details-section:nth-of-type(3) .details-grid,
+.details-body > .details-section:nth-of-type(4) .details-grid {
+  grid-template-columns: 1fr;
+}
+
+.details-head {
+  padding: 1rem 1.15rem 0.85rem;
+}
+
+.details-actions {
+  padding: 0.8rem 1.15rem;
+}
+
+/* Keep modal responsive on smaller screens */
+@media (max-width: 1200px) {
+  .details-card {
+    width: min(1100px, 94vw);
+    height: 88vh;
+  }
+
+  .details-body {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .details-overview-grid {
+    grid-column: 1 / -1;
+  }
+
+  .details-body > .details-section:nth-of-type(2) {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 760px) {
+  .details-card {
+    width: 96vw;
+    height: 92vh;
+  }
+
+  .details-body {
+    grid-template-columns: 1fr;
+  }
+
+  .details-overview-grid,
+  .details-grid,
+  .details-body > .details-section:nth-of-type(2) .details-grid {
+    grid-template-columns: 1fr;
+  }
+}
