@@ -1129,3 +1129,85 @@ table { min-width: 760px; }
     grid-template-columns: 1fr;
   }
 }
+
+/* v18 clean dashboard + Add Trade modal */
+.dashboard-only {
+  grid-template-columns: 1fr;
+}
+
+.dashboard-only .content-area {
+  width: 100%;
+}
+
+.dashboard-only .stats-grid {
+  grid-template-columns: repeat(4, minmax(160px, 1fr));
+}
+
+.journal-actions {
+  display: flex;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.trade-entry-open { overflow: hidden; }
+.trade-entry-modal[hidden] { display: none !important; }
+.trade-entry-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1140;
+  display: grid;
+  place-items: center;
+  padding: clamp(1rem, 3vw, 2rem);
+}
+
+.trade-entry-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.78);
+  backdrop-filter: blur(16px);
+}
+
+.trade-entry-card {
+  position: relative;
+  width: min(980px, 96vw);
+  max-height: min(88vh, 900px);
+  overflow: auto;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 1.45rem;
+  background: linear-gradient(145deg, rgba(17, 24, 39, 0.98), rgba(9, 14, 25, 0.98));
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.5);
+}
+
+.trade-entry-panel {
+  position: static;
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+}
+
+.modal-action-group {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+@media (max-width: 900px) {
+  .dashboard-only .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .dashboard-only .stats-grid,
+  .grid.two,
+  .choice-grid.three-choice {
+    grid-template-columns: 1fr;
+  }
+  .journal-actions {
+    justify-content: stretch;
+  }
+  .journal-actions button {
+    width: 100%;
+  }
+}

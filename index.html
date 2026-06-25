@@ -50,109 +50,7 @@
       </div>
     </section>
 
-    <main id="dashboardView" class="layout app-view active">
-      <section class="panel form-panel">
-        <div class="panel-title-row">
-          <div>
-            <p class="section-kicker">New Trade</p>
-            <h2 id="formTitle">Step 1 — Basic Info</h2>
-          </div>
-          <button id="resetFormBtn" class="text-button" type="button">Clear</button>
-        </div>
-
-        <div class="stepper" aria-label="Trade entry steps">
-          <button id="basicStepBtn" class="step-pill active" type="button">1 Basic</button>
-          <button id="htfStepBtn" class="step-pill" type="button">2 HTF Analysis</button>
-          <button id="ltfStepBtn" class="step-pill" type="button">3 LTF Analysis</button>
-        </div>
-
-        <form id="tradeForm">
-          <input id="tradeId" type="hidden" />
-
-          <section id="basicStep" class="form-step active">
-            <div class="question-card compact-question trade-status-card">
-              <p class="question-number">Trade Status</p>
-              <h3>Did you take this setup?</h3>
-              <div class="choice-grid three-choice">
-                <label class="choice-card status-choice-card">
-                  <input type="radio" name="tradeStatus" value="Took Trade" checked />
-                  <span class="choice-body"><strong>Took Trade</strong><small>Counts in P/L, win rate and RR.</small></span>
-                </label>
-                <label class="choice-card status-choice-card">
-                  <input type="radio" name="tradeStatus" value="Missed Trade" />
-                  <span class="choice-body"><strong>Missed Trade</strong><small>Saved for review, not counted in stats.</small></span>
-                </label>
-                <label class="choice-card status-choice-card">
-                  <input type="radio" name="tradeStatus" value="Not Taken" />
-                  <span class="choice-body"><strong>Not Taken</strong><small>Skipped setup, not counted in stats.</small></span>
-                </label>
-              </div>
-            </div>
-            <div class="grid two">
-              <label>
-                Date
-                <input id="date" type="date" required />
-              </label>
-              <label>
-                Day
-                <input id="day" type="text" readonly />
-              </label>
-            </div>
-
-            <div class="grid two">
-              <label>
-                Pair
-                <select id="pair" required>
-                  <option value="EURUSD">EURUSD</option>
-                  <option value="GBPUSD">GBPUSD</option>
-                  <option value="XAUUSD">XAUUSD</option>
-                  <option value="XAGUSD">XAGUSD</option>
-                  <option value="BTCUSD">BTCUSD</option>
-                  <option value="NQ">NQ</option>
-                  <option value="ES">ES</option>
-                  <option value="Other">Other</option>
-                </select>
-              </label>
-              <label>
-                Direction
-                <select id="direction" required>
-                  <option value="Long">Long</option>
-                  <option value="Short">Short</option>
-                </select>
-              </label>
-            </div>
-
-            <div class="grid two">
-              <label>
-                Session
-                <select id="session" required>
-                  <option value="London">London</option>
-                  <option value="New York">New York</option>
-                  <option value="Asia">Asia</option>
-                  <option value="London + NY">London + NY</option>
-                </select>
-              </label>
-              <label>
-                HTF Timeframe
-                <select id="htfTimeframe" required>
-                  <option value="15m">15m</option>
-                  <option value="1H">1H</option>
-                  <option value="4H">4H</option>
-                  <option value="1D">1D</option>
-                </select>
-              </label>
-            </div>
-
-            <label>
-              Auto LTF Timeframe
-              <input id="ltfTimeframe" type="text" readonly />
-            </label>
-
-            <button id="continueHtfBtn" class="primary" type="button">Continue to HTF Analysis</button>
-          </section>
-        </form>
-      </section>
-
+    <main id="dashboardView" class="layout app-view active dashboard-only">
       <section class="content-area">
         <section class="stats-grid" aria-label="Trading stats">
           <article class="stat-card">
@@ -182,7 +80,10 @@
               <h2>This Week's Trades</h2>
               <small id="weekRangeLabel" class="field-hint">Monday to Sunday</small>
             </div>
-            <button id="openResearchBtn" class="ghost" type="button">View All Trades / Research Journal</button>
+            <div class="journal-actions">
+              <button id="openTradeModalBtn" class="primary" type="button">+ Add Trade</button>
+              <button id="openResearchBtn" class="ghost" type="button">View All Trades / Research Journal</button>
+            </div>
           </div>
 
           <div class="table-wrap compact-table">
@@ -203,7 +104,7 @@
             </table>
           </div>
 
-          <p id="emptyState" class="empty-state">No trades this week yet. Add your first HTF + LTF FVG setup from the left panel.</p>
+          <p id="emptyState" class="empty-state">No trades this week yet. Click + Add Trade to journal your first setup.</p>
         </section>
       </section>
     </main>
@@ -329,7 +230,7 @@
               <option value="Coming from counter SMT">Coming from counter SMT</option>
               <option value="Single candle retracement">Single candle retracement</option>
               <option value="Aggressive retracement">Aggressive retracement</option>
-                            <option value="Next Candle Mitigation">Next Candle Mitigation</option>
+              <option value="Next Candle Mitigation">Next Candle Mitigation</option>
             </select>
             <select id="entryLevelFilter">
               <option value="All">All Entry Levels</option>
@@ -370,6 +271,119 @@
           <p id="researchEmptyState" class="empty-state">No trades match the current filters.</p>
         </section>
       </section>
+    </section>
+
+
+    <section id="tradeEntryModal" class="trade-entry-modal" role="dialog" aria-modal="true" aria-hidden="true" hidden>
+      <div class="trade-entry-backdrop" data-trade-entry-close></div>
+      <article class="trade-entry-card" role="document">
+        <section class="panel form-panel trade-entry-panel">
+        <div class="panel-title-row">
+          <div>
+            <p class="section-kicker">New Trade</p>
+            <h2 id="formTitle">Step 1 — Basic Info</h2>
+          </div>
+          <div class="modal-action-group">
+            <button id="resetFormBtn" class="text-button" type="button">Clear</button>
+            <button id="closeTradeEntryModalBtn" class="ghost icon-close" type="button" aria-label="Close new trade form">×</button>
+          </div>
+        </div>
+
+        <div class="stepper" aria-label="Trade entry steps">
+          <button id="basicStepBtn" class="step-pill active" type="button">1 Basic</button>
+          <button id="htfStepBtn" class="step-pill" type="button">2 HTF Analysis</button>
+          <button id="ltfStepBtn" class="step-pill" type="button">3 LTF Analysis</button>
+        </div>
+
+        <form id="tradeForm">
+          <input id="tradeId" type="hidden" />
+
+          <section id="basicStep" class="form-step active">
+            <div class="question-card compact-question trade-status-card">
+              <p class="question-number">Trade Status</p>
+              <h3>Did you take this setup?</h3>
+              <div class="choice-grid three-choice">
+                <label class="choice-card status-choice-card">
+                  <input type="radio" name="tradeStatus" value="Took Trade" checked />
+                  <span class="choice-body"><strong>Took Trade</strong><small>Counts in P/L, win rate and RR.</small></span>
+                </label>
+                <label class="choice-card status-choice-card">
+                  <input type="radio" name="tradeStatus" value="Missed Trade" />
+                  <span class="choice-body"><strong>Missed Trade</strong><small>Saved for review, not counted in stats.</small></span>
+                </label>
+                <label class="choice-card status-choice-card">
+                  <input type="radio" name="tradeStatus" value="Not Taken" />
+                  <span class="choice-body"><strong>Not Taken</strong><small>Skipped setup, not counted in stats.</small></span>
+                </label>
+              </div>
+            </div>
+            <div class="grid two">
+              <label>
+                Date
+                <input id="date" type="date" required />
+              </label>
+              <label>
+                Day
+                <input id="day" type="text" readonly />
+              </label>
+            </div>
+
+            <div class="grid two">
+              <label>
+                Pair
+                <select id="pair" required>
+                  <option value="EURUSD">EURUSD</option>
+                  <option value="GBPUSD">GBPUSD</option>
+                  <option value="XAUUSD">XAUUSD</option>
+                  <option value="XAGUSD">XAGUSD</option>
+                  <option value="BTCUSD">BTCUSD</option>
+                  <option value="NQ">NQ</option>
+                  <option value="ES">ES</option>
+                  <option value="Other">Other</option>
+                </select>
+              </label>
+              <label>
+                Direction
+                <select id="direction" required>
+                  <option value="Long">Long</option>
+                  <option value="Short">Short</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="grid two">
+              <label>
+                Session
+                <select id="session" required>
+                  <option value="London">London</option>
+                  <option value="New York">New York</option>
+                  <option value="Asia">Asia</option>
+                  <option value="London + NY">London + NY</option>
+                </select>
+              </label>
+              <label>
+                HTF Timeframe
+                <select id="htfTimeframe" required>
+                  <option value="15m">15m</option>
+                  <option value="1H">1H</option>
+                  <option value="4H">4H</option>
+                  <option value="1D">1D</option>
+                </select>
+              </label>
+            </div>
+
+            <label>
+              Auto LTF Timeframe
+              <input id="ltfTimeframe" type="text" readonly />
+            </label>
+
+            <button id="continueHtfBtn" class="primary" type="button">Continue to HTF Analysis</button>
+          </section>
+        </form>
+      </section>
+
+
+      </article>
     </section>
 
     <section id="htfStep" class="strategy-modal form-step" role="dialog" aria-modal="true" aria-hidden="true">

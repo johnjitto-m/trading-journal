@@ -73,6 +73,9 @@ const basicStepBtn = document.querySelector('#basicStepBtn');
 const htfStepBtn = document.querySelector('#htfStepBtn');
 const ltfStepBtn = document.querySelector('#ltfStepBtn');
 const formTitle = document.querySelector('#formTitle');
+const tradeEntryModal = document.querySelector('#tradeEntryModal');
+const openTradeModalBtn = document.querySelector('#openTradeModalBtn');
+const closeTradeEntryModalBtn = document.querySelector('#closeTradeEntryModalBtn');
 
 const preview = {
   htf: {
@@ -204,8 +207,8 @@ function migrateOldTrade(trade) {
     ...trade,
     day: trade.day || getDayName(trade.date),
     tradeStatus: normalizeTradeStatus(trade.tradeStatus || trade.status),
-    htfTimeframe: trade.htfTimeframe || '15m',
-    ltfTimeframe: trade.ltfTimeframe || '1m',
+    htfTimeframe: trade.htfTimeframe || '1H',
+    ltfTimeframe: trade.ltfTimeframe || '5m',
     htfImageUploadData: trade.htfImageUploadData || '',
     ltfImageUploadData: trade.ltfImageUploadData || '',
     htfChartLinks: htfLinks,
@@ -1143,6 +1146,24 @@ function escapeAttribute(value = '') {
   return escapeHtml(value).replaceAll('`', '&#096;');
 }
 
+
+function openTradeEntryModal(resetBeforeOpen = true) {
+  if (!tradeEntryModal) return;
+  if (resetBeforeOpen) resetForm();
+  tradeEntryModal.hidden = false;
+  tradeEntryModal.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('trade-entry-open');
+  setStep('basic');
+  if (formTitle && !fields.tradeId.value) formTitle.textContent = 'Step 1 — Basic Info';
+}
+
+function closeTradeEntryModal() {
+  if (!tradeEntryModal) return;
+  tradeEntryModal.hidden = true;
+  tradeEntryModal.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('trade-entry-open');
+}
+
 function resetForm() {
   form.reset();
   uploadedImages = { htf: '', ltf: '' };
@@ -1153,7 +1174,7 @@ function resetForm() {
   fields.pair.value = 'EURUSD';
   fields.direction.value = 'Long';
   fields.session.value = 'London';
-  fields.htfTimeframe.value = '15m';
+  fields.htfTimeframe.value = '1H';
   fields.risk.value = 25;
   fields.rr.value = 1;
   setChecked('tradeStatus', 'Took Trade');
@@ -1352,7 +1373,7 @@ function editTrade(id) {
   fields.pair.value = trade.pair || 'EURUSD';
   fields.direction.value = trade.direction || 'Long';
   fields.session.value = trade.session || 'London';
-  fields.htfTimeframe.value = trade.htfTimeframe || '15m';
+  fields.htfTimeframe.value = trade.htfTimeframe || '1H';
   fields.ltfTimeframe.value = trade.ltfTimeframe || htfToLtf[fields.htfTimeframe.value];
   uploadedImages.htf = trade.htfImageUploadData || '';
   uploadedImages.ltf = trade.ltfImageUploadData || '';
@@ -1378,9 +1399,9 @@ function editTrade(id) {
   updateChartPreview('ltf');
 
   setAppView('dashboard');
+  openTradeEntryModal(false);
   setStep('basic');
   if (formTitle) formTitle.textContent = 'Editing Trade — Basic Info';
-  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function deleteTrade(id) {
@@ -1623,6 +1644,7 @@ async function saveTradeFromModal() {
   }
 
   resetForm();
+  closeTradeEntryModal();
 }
 
 function wireNoneOption(groupName) {
@@ -1656,6 +1678,12 @@ function setupImageUpload(type, input) {
     reader.readAsDataURL(file);
   });
 }
+
+openTradeModalBtn?.addEventListener('click', () => openTradeEntryModal(true));
+closeTradeEntryModalBtn?.addEventListener('click', closeTradeEntryModal);
+tradeEntryModal?.addEventListener('click', (event) => {
+  if (event.target?.matches?.('[data-trade-entry-close]')) closeTradeEntryModal();
+});
 
 form.addEventListener('submit', (event) => {
   event.preventDefault();
@@ -1738,6 +1766,7 @@ document.addEventListener('keydown', (event) => {
   if (event.key !== 'Escape') return;
   if (deleteModal.root && !deleteModal.root.hidden) closeDeleteConfirm();
   if (detailsModal.root && !detailsModal.root.hidden) closeTradeDetails();
+  if (tradeEntryModal && !tradeEntryModal.hidden) closeTradeEntryModal();
 });
 
 cloudUi.signInBtn?.addEventListener('click', signIn);

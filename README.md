@@ -1,23 +1,13 @@
-# John's Trading Journal WebApp v17
+# John's Trading Journal
 
-Professional HTF FVG + LTF execution trading journal with Supabase cloud sync.
+Professional browser-based trading journal for HTF FVG → CISD → LTF execution tracking.
 
-## v17 changes
+## v18
 
-- Added simple Trade Status in Step 1:
-  - Took Trade
-  - Missed Trade
-  - Not Taken
-- Missed Trade and Not Taken are saved in the journal, but excluded from P/L, win rate, average RR, and strategy analytics.
-- Trade logs now include a Status column.
-- Research Journal includes a Trade Status filter.
-- View Trade details modal shows trade status.
-- Export CSV includes Trade Status.
-- Kept the clean homepage dashboard and full Research Journal analytics.
-- Kept the wider 16:9 Trade Details modal layout.
-
-## Supabase setup
-
-The Supabase Project ID and publishable key are already set in `app.js` for John's project.
-
-Never paste service_role keys, secret keys, or database passwords in the frontend.
+- Clean dashboard homepage.
+- New Trade form moved into a modal opened by `+ Add Trade`.
+- Dashboard shows only weekly stats and current-week trades.
+- Edit Trade opens the same trade-entry modal from Step 1.
+- View Trade and Delete Trade modals remain separate.
+- Supabase cloud sync remains enabled.
+- Missed Trade / Not Taken stay saved but are not counted in P/L, win rate, average RR, or edge analytics.
