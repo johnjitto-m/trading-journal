@@ -575,6 +575,32 @@
       </div>
     </section>
 
+
+    <section id="deleteConfirmModal" class="delete-confirm-modal" role="dialog" aria-modal="true" aria-hidden="true" hidden>
+      <div class="delete-confirm-backdrop" data-delete-cancel></div>
+      <article class="delete-confirm-card" role="document">
+        <div class="delete-confirm-head">
+          <div>
+            <p class="section-kicker danger-kicker">Delete Trade</p>
+            <h2>Are you sure?</h2>
+            <p class="delete-confirm-subtitle">This trade will be removed from Supabase cloud and from this browser.</p>
+          </div>
+          <button id="deleteModalCloseBtn" class="ghost icon-close" type="button" aria-label="Close delete confirmation">×</button>
+        </div>
+
+        <div id="deleteTradeSummary" class="delete-trade-summary"></div>
+
+        <div id="deleteCloudWarning" class="delete-warning">
+          Cloud delete happens first. If Supabase fails, the trade will stay in your journal.
+        </div>
+
+        <div class="delete-confirm-actions">
+          <button id="cancelDeleteBtn" class="ghost" type="button">Cancel</button>
+          <button id="confirmDeleteBtn" class="danger-primary" type="button">Delete Trade</button>
+        </div>
+      </article>
+    </section>
+
     <template id="tradeRowTemplate">
       <tr>
         <td class="date-cell"></td>

@@ -652,3 +652,137 @@ button:disabled {
     display: grid;
   }
 }
+
+/* v14 modern delete confirmation modal */
+.delete-modal-open { overflow: hidden; }
+.delete-confirm-modal[hidden] { display: none !important; }
+.delete-confirm-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+}
+.delete-confirm-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.76);
+  backdrop-filter: blur(14px);
+}
+.delete-confirm-card {
+  position: relative;
+  width: min(560px, 100%);
+  border: 1px solid rgba(248, 113, 113, 0.24);
+  border-radius: 1.4rem;
+  background: linear-gradient(145deg, rgba(17, 24, 39, 0.98), rgba(9, 14, 25, 0.98));
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.48);
+  padding: 1.15rem;
+}
+.delete-confirm-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.delete-confirm-head h2 {
+  margin: 0.15rem 0 0;
+  font-size: 1.6rem;
+}
+.danger-kicker { color: #f87171; }
+.delete-confirm-subtitle {
+  margin: 0.4rem 0 0;
+  color: var(--muted);
+}
+.icon-close {
+  width: 2.65rem;
+  height: 2.65rem;
+  border-radius: 999px;
+  padding: 0;
+  font-size: 1.35rem;
+  line-height: 1;
+}
+.delete-trade-summary {
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  background: rgba(15, 23, 42, 0.72);
+  padding: 1rem;
+}
+.delete-summary-main {
+  display: grid;
+  gap: 0.25rem;
+  padding-bottom: 0.85rem;
+  margin-bottom: 0.85rem;
+  border-bottom: 1px solid var(--line);
+}
+.delete-summary-main strong {
+  font-size: 1.15rem;
+}
+.delete-summary-main span {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.delete-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+.delete-summary-grid div {
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 0.75rem;
+  background: rgba(30, 41, 59, 0.42);
+  padding: 0.7rem;
+}
+.delete-summary-grid span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.25rem;
+}
+.delete-summary-grid strong {
+  display: block;
+  font-size: 0.95rem;
+}
+.delete-warning {
+  margin-top: 0.9rem;
+  border: 1px solid rgba(248, 113, 113, 0.22);
+  border-radius: 0.85rem;
+  background: rgba(127, 29, 29, 0.18);
+  color: #fecaca;
+  padding: 0.8rem;
+  font-size: 0.9rem;
+}
+.delete-confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+.danger-primary {
+  border: 1px solid rgba(248, 113, 113, 0.6);
+  color: #fff;
+  background: linear-gradient(135deg, #dc2626, #991b1b);
+  box-shadow: 0 12px 30px rgba(220, 38, 38, 0.22);
+}
+.danger-primary:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.06);
+}
+
+/* Keep logged-in cloud bar clean even when auth form exists in the DOM */
+.app-unlocked #authControls,
+.app-unlocked #authControls *,
+.app-unlocked .auth-card-grid,
+.app-unlocked .auth-action-row {
+  display: none !important;
+}
+
+@media (max-width: 640px) {
+  .delete-summary-grid { grid-template-columns: 1fr; }
+  .delete-confirm-actions { flex-direction: column-reverse; }
+  .delete-confirm-actions button { width: 100%; }
+}

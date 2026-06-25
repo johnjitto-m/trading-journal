@@ -1,59 +1,41 @@
-# John's Trading Journal — v12 Dashboard + Research View
+# John's Trading Journal — v14
 
-A professional FVG strategy research journal with Supabase cloud sync.
+A cloud-synced HTF/LTF FVG strategy research journal.
 
-## v12 changes
+## Current version
 
-- Homepage/Dashboard now shows **current week trades only**.
-- Homepage stats are weekly stats:
-  - This Week P/L
-  - This Week Win Rate
-  - This Week Trades
-  - This Week Avg RR
-- Removed search and dropdown filters from the homepage.
-- Added **View All Trades / Research Journal** button.
-- Added a separate **Trade Research** view for all trade data.
-- Research view includes:
-  - All trades
-  - Search
-  - Pair filter
-  - Result filter
-  - Session filter
-  - HTF filter
-  - FVG order filter
-  - CISD type filter
-  - Date range filter
-  - Filtered stats
-  - Filtered strategy edge snapshot
-- Supabase cloud sync stays active.
-- Backup JSON and Export CSV still work.
+v14 adds a modern delete confirmation modal.
+
+### Included
+
+- Supabase login / sign-up
+- Cloud-synced trades
+- Dashboard view with current-week trades only
+- Research Journal view with all trades and filters
+- HTF analysis flow
+- LTF execution flow
+- Multiple TradingView / image links per trade
+- Backup JSON
+- Export CSV
+- Full trade editing from Basic Info onward
+- Delete from Supabase cloud and local journal
+- Modern delete confirmation modal with trade summary
 
 ## Supabase setup
 
-Open `app.js` and paste your Supabase values:
+Open `app.js` and paste your own values:
 
 ```js
 const SUPABASE_PROJECT_ID = 'your-project-id';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_...';
 ```
 
-Do not paste service role keys, secret keys, or database passwords.
+Do not paste database passwords, service role keys, or secret keys.
 
-## Push to GitHub
+## Push
 
 ```bash
-cd ~/Downloads/trading-journal
-
-git status
 git add .
-git commit -m "Add dashboard and research journal views"
+git commit -m "Add modern delete confirmation modal"
 git push origin main
 ```
-
-After GitHub Pages deploys, hard refresh the site with `Ctrl + Shift + R`.
-
-
-## v13 fixes
-
-- Delete now removes the trade from Supabase before removing it locally.
-- Edit now starts from Basic Info, so date, pair, direction, session, HTF/LTF, HTF data, LTF data, and outcome can all be changed.

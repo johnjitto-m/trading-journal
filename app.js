@@ -131,6 +131,14 @@ const cloudUi = {
   uploadLocalBtn: document.querySelector('#uploadLocalBtn'),
 };
 
+const deleteModal = {
+  root: document.querySelector('#deleteConfirmModal'),
+  summary: document.querySelector('#deleteTradeSummary'),
+  closeBtn: document.querySelector('#deleteModalCloseBtn'),
+  cancelBtn: document.querySelector('#cancelDeleteBtn'),
+  confirmBtn: document.querySelector('#confirmDeleteBtn'),
+};
+
 let uploadedImages = { htf: '', ltf: '' };
 let chartLinks = clone(defaultChartLinks);
 let activeChartIndex = { htf: 0, ltf: 0 };
@@ -139,6 +147,7 @@ let supabaseClient = null;
 let currentUser = null;
 let cloudReady = false;
 let cloudBusy = false;
+let pendingDeleteId = null;
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
@@ -1119,13 +1128,63 @@ function editTrade(id) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-async function deleteTrade(id) {
+function deleteTrade(id) {
+  openDeleteConfirm(id);
+}
+
+function openDeleteConfirm(id) {
   const trade = trades.find((item) => item.id === id);
-  if (!trade) return;
-  const ok = confirm(`Delete ${trade.pair} trade from ${trade.date}? This will also delete it from Supabase cloud.`);
-  if (!ok) return;
+  if (!trade || !deleteModal.root) return;
+
+  pendingDeleteId = id;
+  if (deleteModal.summary) deleteModal.summary.innerHTML = buildDeleteTradeSummary(trade);
+  if (deleteModal.confirmBtn) {
+    deleteModal.confirmBtn.disabled = false;
+    deleteModal.confirmBtn.textContent = 'Delete Trade';
+  }
+
+  deleteModal.root.hidden = false;
+  deleteModal.root.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('delete-modal-open');
+}
+
+function closeDeleteConfirm() {
+  if (!deleteModal.root) return;
+  pendingDeleteId = null;
+  deleteModal.root.hidden = true;
+  deleteModal.root.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('delete-modal-open');
+}
+
+function buildDeleteTradeSummary(trade) {
+  const pnl = calculatePnL(trade);
+  return `
+    <div class="delete-summary-main">
+      <strong>${escapeHtml(trade.pair || '-')} ${escapeHtml(trade.direction || '')}</strong>
+      <span>${escapeHtml(trade.date || '-')} · ${escapeHtml(trade.day || getDayName(trade.date))} · ${escapeHtml(trade.session || '-')}</span>
+    </div>
+    <div class="delete-summary-grid">
+      <div><span>HTF → LTF</span><strong>${escapeHtml(trade.htfTimeframe || '-')} → ${escapeHtml(trade.ltfTimeframe || '-')}</strong></div>
+      <div><span>FVG Order</span><strong>${escapeHtml(trade.fvgOrder || '-')}</strong></div>
+      <div><span>CISD</span><strong>${escapeHtml(trade.cisdType || '-')}</strong></div>
+      <div><span>FVG Location</span><strong>${escapeHtml(trade.fvgLocation || '-')}</strong></div>
+      <div><span>Result</span><strong>${escapeHtml(trade.result || '-')}</strong></div>
+      <div><span>RR</span><strong>${Number(trade.rr || 0).toFixed(2)}R</strong></div>
+      <div><span>P/L</span><strong class="${pnl >= 0 ? 'pnl-positive' : 'pnl-negative'}">${money(pnl)}</strong></div>
+    </div>
+  `;
+}
+
+async function confirmDeleteTrade() {
+  if (!pendingDeleteId) return;
+  const id = pendingDeleteId;
 
   try {
+    if (deleteModal.confirmBtn) {
+      deleteModal.confirmBtn.disabled = true;
+      deleteModal.confirmBtn.textContent = 'Deleting...';
+    }
+
     if (currentUser) {
       setCloudStatus('Deleting trade from cloud...', 'neutral');
       await deleteCloudTrade(id);
@@ -1134,14 +1193,19 @@ async function deleteTrade(id) {
     trades = trades.filter((item) => item.id !== id);
     saveTrades();
     renderTable();
+    closeDeleteConfirm();
 
     if (currentUser) {
       setCloudStatus(`Connected. Trade deleted. ${trades.length} trade${trades.length === 1 ? '' : 's'} synced.`, 'good');
     }
   } catch (error) {
     console.error(error);
+    if (deleteModal.confirmBtn) {
+      deleteModal.confirmBtn.disabled = false;
+      deleteModal.confirmBtn.textContent = 'Delete Trade';
+    }
     setCloudStatus(`Delete failed: ${error.message}`, 'warn');
-    alert(`Delete failed: ${error.message}. The trade was not removed locally because cloud delete failed.`);
+    alert(`Delete failed: ${error.message}. The trade was not removed because cloud delete failed.`);
   }
 }
 
@@ -1384,6 +1448,16 @@ document.querySelector('#resetFormBtn').addEventListener('click', resetForm);
 document.querySelector('#exportJsonBtn').addEventListener('click', exportJson);
 document.querySelector('#exportCsvBtn').addEventListener('click', exportCsv);
 document.querySelector('#importJsonInput').addEventListener('change', importJson);
+
+deleteModal.closeBtn?.addEventListener('click', closeDeleteConfirm);
+deleteModal.cancelBtn?.addEventListener('click', closeDeleteConfirm);
+deleteModal.confirmBtn?.addEventListener('click', confirmDeleteTrade);
+deleteModal.root?.addEventListener('click', (event) => {
+  if (event.target?.matches?.('[data-delete-cancel]')) closeDeleteConfirm();
+});
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && deleteModal.root && !deleteModal.root.hidden) closeDeleteConfirm();
+});
 
 cloudUi.signInBtn?.addEventListener('click', signIn);
 cloudUi.signUpBtn?.addEventListener('click', signUp);
