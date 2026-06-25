@@ -55,6 +55,7 @@ const fvgLocationFilter = document.querySelector('#fvgLocationFilter');
 const mitigationFilter = document.querySelector('#mitigationFilter');
 const entryLevelFilter = document.querySelector('#entryLevelFilter');
 const beLogicFilter = document.querySelector('#beLogicFilter');
+const sortFilter = document.querySelector('#sortFilter');
 const dateFromFilter = document.querySelector('#dateFromFilter');
 const dateToFilter = document.querySelector('#dateToFilter');
 const clearResearchFiltersBtn = document.querySelector('#clearResearchFiltersBtn');
@@ -526,6 +527,13 @@ function getDayName(dateValue) {
   return date.toLocaleDateString('en-US', { weekday: 'long' });
 }
 
+function formatDateDMY(dateValue) {
+  if (!dateValue) return '-';
+  const [year, month, day] = String(dateValue).split('-');
+  if (!year || !month || !day) return dateValue;
+  return `${day}-${month}-${year}`;
+}
+
 function normalizeTradeStatus(value) {
   const status = String(value || '').trim();
   if (status === 'Missed Trade' || status === 'Missed') return 'Missed Trade';
@@ -801,7 +809,7 @@ function getCurrentWeekTrades() {
   const { start, end } = getCurrentWeekRange();
   return trades
     .filter((trade) => isTradeInRange(trade, start, end))
-    .sort((a, b) => new Date(b.date) - new Date(a.date));
+    .sort((a, b) => new Date(`${a.date}T00:00:00`) - new Date(`${b.date}T00:00:00`));
 }
 
 function getFilteredTrades() {
@@ -821,7 +829,7 @@ function getFilteredTrades() {
   const dateFrom = dateFromFilter?.value || '';
   const dateTo = dateToFilter?.value || '';
 
-  return trades
+  const filtered = trades
     .filter((trade) => (direction === 'All' ? true : trade.direction === direction))
     .filter((trade) => (status === 'All' ? true : normalizeTradeStatus(trade.tradeStatus) === status))
     .filter((trade) => (pair === 'All' ? true : trade.pair === pair))
@@ -840,6 +848,7 @@ function getFilteredTrades() {
       if (!query) return true;
       return [
         trade.date,
+        formatDateDMY(trade.date),
         trade.day,
         trade.pair,
         trade.direction,
@@ -853,6 +862,7 @@ function getFilteredTrades() {
         ...(trade.htfRetracementTags || []),
         ...(trade.ltfEntryLevelTags || []),
         trade.beLogic,
+        getDisplayResult(trade),
         trade.result,
         ...(trade.htfChartLinks || []).flatMap((item) => [item.label, item.url]),
         ...(trade.ltfChartLinks || []).flatMap((item) => [item.label, item.url]),
@@ -862,8 +872,25 @@ function getFilteredTrades() {
         .join(' ')
         .toLowerCase()
         .includes(query);
-    })
-    .sort((a, b) => new Date(b.date) - new Date(a.date));
+    });
+
+  return sortFilteredTrades(filtered);
+}
+
+function sortFilteredTrades(list) {
+  const sortValue = sortFilter?.value || 'newest';
+  return [...list].sort((a, b) => {
+    const dateA = new Date(`${a.date}T00:00:00`);
+    const dateB = new Date(`${b.date}T00:00:00`);
+
+    if (sortValue === 'oldest') return dateA - dateB;
+    if (sortValue === 'pnlHigh') return calculatePnL(b) - calculatePnL(a);
+    if (sortValue === 'pnlLow') return calculatePnL(a) - calculatePnL(b);
+    if (sortValue === 'rrHigh') return Number(b.rr || 0) - Number(a.rr || 0);
+    if (sortValue === 'rrLow') return Number(a.rr || 0) - Number(b.rr || 0);
+
+    return dateB - dateA;
+  });
 }
 
 function renderStats(list = trades, target = stats) {
@@ -1037,7 +1064,7 @@ function renderTradeRows(list, targetBody, targetEmpty) {
   list.forEach((trade) => {
     const row = rowTemplate.content.cloneNode(true);
 
-    row.querySelector('.date-cell').innerHTML = `${escapeHtml(trade.date)}<br><small>${escapeHtml(trade.day || getDayName(trade.date))}</small>`;
+    row.querySelector('.date-cell').innerHTML = `${escapeHtml(formatDateDMY(trade.date))}<br><small>${escapeHtml(trade.day || getDayName(trade.date))}</small>`;
     row.querySelector('.pair-cell').textContent = trade.pair || '-';
     row.querySelector('.direction-cell').innerHTML = `<span class="direction-badge ${String(trade.direction || '').toLowerCase()}">${escapeHtml(trade.direction || '-')}</span>`;
     row.querySelector('.status-cell').innerHTML = `<span class="status-badge status-${getTradeStatusClass(trade)}">${escapeHtml(normalizeTradeStatus(trade.tradeStatus))}</span>`;
@@ -1097,6 +1124,7 @@ function clearResearchFilters() {
   });
   if (dateFromFilter) dateFromFilter.value = '';
   if (dateToFilter) dateToFilter.value = '';
+  if (sortFilter) sortFilter.value = 'newest';
   renderResearch();
 }
 
@@ -1249,7 +1277,7 @@ function viewTrade(id) {
   const pnl = calculatePnL(trade);
   if (detailsModal.title) detailsModal.title.textContent = `${trade.pair || '-'} ${trade.direction || ''}`.trim();
   if (detailsModal.subtitle) {
-    detailsModal.subtitle.textContent = `${normalizeTradeStatus(trade.tradeStatus)} · ${trade.date || '-'} · ${trade.day || getDayName(trade.date)} · ${trade.session || '-'} · ${trade.htfTimeframe || '-'} → ${trade.ltfTimeframe || '-'}`;
+    detailsModal.subtitle.textContent = `${normalizeTradeStatus(trade.tradeStatus)} · ${formatDateDMY(trade.date)} · ${trade.day || getDayName(trade.date)} · ${trade.session || '-'} · ${trade.htfTimeframe || '-'} → ${trade.ltfTimeframe || '-'}`;
   }
   if (detailsModal.body) detailsModal.body.innerHTML = buildTradeDetails(trade, pnl);
 
@@ -1284,7 +1312,7 @@ function buildTradeDetails(trade, pnl) {
         <h3>Trade Context</h3>
       </div>
       <div class="details-grid">
-        ${detailItem('Date', `${trade.date || '-'} · ${trade.day || getDayName(trade.date)}`)}
+        ${detailItem('Date', `${formatDateDMY(trade.date)} · ${trade.day || getDayName(trade.date)}`)}
         ${detailItem('Status', normalizeTradeStatus(trade.tradeStatus))}
         ${detailItem('Pair', trade.pair || '-')}
         ${detailItem('Direction', trade.direction || '-')}
@@ -1437,7 +1465,7 @@ function buildDeleteTradeSummary(trade) {
   return `
     <div class="delete-summary-main">
       <strong>${escapeHtml(trade.pair || '-')} ${escapeHtml(trade.direction || '')}</strong>
-      <span>${escapeHtml(normalizeTradeStatus(trade.tradeStatus))} · ${escapeHtml(trade.date || '-')} · ${escapeHtml(trade.day || getDayName(trade.date))} · ${escapeHtml(trade.session || '-')}</span>
+      <span>${escapeHtml(normalizeTradeStatus(trade.tradeStatus))} · ${escapeHtml(formatDateDMY(trade.date))} · ${escapeHtml(trade.day || getDayName(trade.date))} · ${escapeHtml(trade.session || '-')}</span>
     </div>
     <div class="delete-summary-grid">
       <div><span>Status</span><strong>${escapeHtml(normalizeTradeStatus(trade.tradeStatus))}</strong></div>
@@ -1730,6 +1758,7 @@ fvgLocationFilter?.addEventListener('change', renderResearch);
 mitigationFilter?.addEventListener('change', renderResearch);
 entryLevelFilter?.addEventListener('change', renderResearch);
 beLogicFilter?.addEventListener('change', renderResearch);
+sortFilter?.addEventListener('change', renderResearch);
 dateFromFilter?.addEventListener('change', renderResearch);
 dateToFilter?.addEventListener('change', renderResearch);
 clearResearchFiltersBtn?.addEventListener('click', clearResearchFilters);

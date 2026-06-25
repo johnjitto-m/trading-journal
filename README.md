@@ -2,12 +2,16 @@
 
 Professional browser-based trading journal for HTF FVG → CISD → LTF execution tracking.
 
-## v18
+## v19
 
-- Clean dashboard homepage.
-- New Trade form moved into a modal opened by `+ Add Trade`.
-- Dashboard shows only weekly stats and current-week trades.
-- Edit Trade opens the same trade-entry modal from Step 1.
-- View Trade and Delete Trade modals remain separate.
-- Supabase cloud sync remains enabled.
-- Missed Trade / Not Taken stay saved but are not counted in P/L, win rate, average RR, or edge analytics.
+- Weekly journal now sorts trades Monday → Sunday / oldest to newest.
+- Trade dates display as day-month-year, e.g. `25-06-2026`.
+- Research Journal now has a sort dropdown:
+  - Newest first
+  - Oldest first
+  - Highest P/L first
+  - Lowest P/L first
+  - Highest RR first
+  - Lowest RR first
+- Added `Next Candle Mitigation` to Question 4 and the research mitigation filter.
+- Keeps clean dashboard, Add Trade modal, View Trade modal, Delete modal, Supabase cloud sync, and simple Trade Status tracking.
