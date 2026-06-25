@@ -167,9 +167,13 @@ button:hover, .file-label:hover, .upload-box:hover, .link-button:hover { transfo
   position: fixed;
   inset: 0;
   z-index: 9999;
+  --strategy-dialog-width: min(1420px, 94vw);
+  --strategy-dialog-height: min(80vw, 88vh);
+  --strategy-topbar-height: 88px;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   gap: 1rem;
+  place-content: center;
   padding: clamp(1rem, 3vw, 2rem);
   overflow: hidden;
   background: rgba(2, 6, 23, 0.86);
@@ -178,11 +182,12 @@ button:hover, .file-label:hover, .upload-box:hover, .link-button:hover { transfo
 
 .strategy-modal .modal-topbar,
 .strategy-modal .modal-workspace {
-  width: min(1280px, 100%);
+  width: var(--strategy-dialog-width);
   margin-inline: auto;
 }
 
 .modal-topbar {
+  min-height: var(--strategy-topbar-height);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -191,10 +196,11 @@ button:hover, .file-label:hover, .upload-box:hover, .link-button:hover { transfo
   border-radius: 1.25rem;
   background: rgba(17, 24, 39, 0.96);
   box-shadow: var(--shadow);
-  padding: 1rem;
+  padding: 1rem 1.15rem;
 }
 
 .modal-workspace {
+  height: calc(var(--strategy-dialog-height) - var(--strategy-topbar-height) - 1rem);
   min-height: 0;
   overflow: hidden;
   display: grid;
@@ -370,8 +376,16 @@ body.modal-open { overflow: hidden; }
 @media (max-width: 900px) {
   .app-header { align-items: flex-start; flex-direction: column; }
   .modal-workspace, .edge-grid { grid-template-columns: 1fr; }
-  .strategy-modal.form-step.active { overflow-y: auto; }
-  .modal-workspace { overflow: visible; }
+  .strategy-modal.form-step.active {
+    --strategy-dialog-width: min(100vw - 1.5rem, 100%);
+    --strategy-dialog-height: auto;
+    place-content: start center;
+    overflow-y: auto;
+  }
+  .modal-workspace {
+    height: auto;
+    overflow: visible;
+  }
   .chart-panel, .questions-panel { max-height: none; overflow: visible; }
   .stats-grid { grid-template-columns: repeat(2, minmax(140px, 1fr)); }
 }
