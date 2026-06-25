@@ -1,36 +1,23 @@
-# John's Trading Journal WebApp v15
+# John's Trading Journal WebApp v17
 
 Professional HTF FVG + LTF execution trading journal with Supabase cloud sync.
 
-## v15 changes
+## v17 changes
 
-- Clean trade log columns: Date, Pair, Direction, Setup, CISD, Result, Actions.
-- Added View Trade details modal.
-- View modal shows full Basic Info, HTF Analysis, LTF Analysis, outcome, P/L, and chart links.
-- Kept modern delete confirmation modal.
-- Improved Research Journal analytics:
-  - Winning trade similarities
-  - Losing trade similarities
-  - Best/worst CISD type
-  - Best FVG order
-  - Best FVG location
-  - Best/worst mitigation tag
-  - Best entry level
-  - Best BE logic
-- Added more research filters:
-  - Direction
-  - FVG location
-  - Mitigation/retracement tag
-  - Entry level
-  - BE logic
+- Added simple Trade Status in Step 1:
+  - Took Trade
+  - Missed Trade
+  - Not Taken
+- Missed Trade and Not Taken are saved in the journal, but excluded from P/L, win rate, average RR, and strategy analytics.
+- Trade logs now include a Status column.
+- Research Journal includes a Trade Status filter.
+- View Trade details modal shows trade status.
+- Export CSV includes Trade Status.
+- Kept the clean homepage dashboard and full Research Journal analytics.
+- Kept the wider 16:9 Trade Details modal layout.
 
 ## Supabase setup
 
-Open `app.js` and set:
-
-```js
-const SUPABASE_PROJECT_ID = 'your-project-id';
-const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_...';
-```
+The Supabase Project ID and publishable key are already set in `app.js` for John's project.
 
 Never paste service_role keys, secret keys, or database passwords in the frontend.

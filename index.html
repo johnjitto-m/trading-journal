@@ -70,6 +70,24 @@
           <input id="tradeId" type="hidden" />
 
           <section id="basicStep" class="form-step active">
+            <div class="question-card compact-question trade-status-card">
+              <p class="question-number">Trade Status</p>
+              <h3>Did you take this setup?</h3>
+              <div class="choice-grid three-choice">
+                <label class="choice-card status-choice-card">
+                  <input type="radio" name="tradeStatus" value="Took Trade" checked />
+                  <span class="choice-body"><strong>Took Trade</strong><small>Counts in P/L, win rate and RR.</small></span>
+                </label>
+                <label class="choice-card status-choice-card">
+                  <input type="radio" name="tradeStatus" value="Missed Trade" />
+                  <span class="choice-body"><strong>Missed Trade</strong><small>Saved for review, not counted in stats.</small></span>
+                </label>
+                <label class="choice-card status-choice-card">
+                  <input type="radio" name="tradeStatus" value="Not Taken" />
+                  <span class="choice-body"><strong>Not Taken</strong><small>Skipped setup, not counted in stats.</small></span>
+                </label>
+              </div>
+            </div>
             <div class="grid two">
               <label>
                 Date
@@ -155,6 +173,8 @@
           </article>
         </section>
 
+        <div id="edgeSummary" hidden></div>
+
         <section class="panel dashboard-log-panel">
           <div class="panel-title-row filters-row">
             <div>
@@ -172,6 +192,7 @@
                   <th>Date</th>
                   <th>Pair</th>
                   <th>Direction</th>
+                  <th>Status</th>
                   <th>Setup</th>
                   <th>CISD</th>
                   <th>Result</th>
@@ -242,6 +263,12 @@
               <option value="Long">Long</option>
               <option value="Short">Short</option>
             </select>
+            <select id="statusFilter">
+              <option value="All">All Status</option>
+              <option value="Took Trade">Took Trade</option>
+              <option value="Missed Trade">Missed Trade</option>
+              <option value="Not Taken">Not Taken</option>
+            </select>
             <select id="pairFilter">
               <option value="All">All Pairs</option>
               <option value="EURUSD">EURUSD</option>
@@ -302,7 +329,6 @@
               <option value="Coming from counter SMT">Coming from counter SMT</option>
               <option value="Single candle retracement">Single candle retracement</option>
               <option value="Aggressive retracement">Aggressive retracement</option>
-              <option value="Next Candle Mitigation">Next Candle Mitigation</option>
             </select>
             <select id="entryLevelFilter">
               <option value="All">All Entry Levels</option>
@@ -329,6 +355,7 @@
                   <th>Date</th>
                   <th>Pair</th>
                   <th>Direction</th>
+                  <th>Status</th>
                   <th>Setup</th>
                   <th>CISD</th>
                   <th>Result</th>
@@ -473,7 +500,6 @@
               <label class="tag-choice"><input type="checkbox" name="htfRetracementTags" value="Coming from counter SMT" /><span>Coming from counter SMT</span></label>
               <label class="tag-choice"><input type="checkbox" name="htfRetracementTags" value="Single candle retracement" /><span>Single candle retracement</span></label>
               <label class="tag-choice"><input type="checkbox" name="htfRetracementTags" value="Aggressive retracement" /><span>Aggressive retracement</span></label>
-              <label class="tag-choice"><input type="checkbox" name="htfRetracementTags" value="Next Candle Mitigation" /><span>Next Candle Mitigation</span></label>
             </div>
           </div>
 
@@ -653,6 +679,7 @@
         <td class="date-cell"></td>
         <td class="pair-cell"></td>
         <td class="direction-cell"></td>
+        <td class="status-cell"></td>
         <td class="setup-cell"></td>
         <td class="cisd-cell"></td>
         <td><span class="result-pill"></span></td>

@@ -44,6 +44,7 @@ const researchTableBody = document.querySelector('#researchTradesTable');
 const researchEmptyState = document.querySelector('#researchEmptyState');
 const searchInput = document.querySelector('#searchInput');
 const directionFilter = document.querySelector('#directionFilter');
+const statusFilter = document.querySelector('#statusFilter');
 const pairFilter = document.querySelector('#pairFilter');
 const resultFilter = document.querySelector('#resultFilter');
 const sessionFilter = document.querySelector('#sessionFilter');
@@ -202,6 +203,7 @@ function migrateOldTrade(trade) {
   return {
     ...trade,
     day: trade.day || getDayName(trade.date),
+    tradeStatus: normalizeTradeStatus(trade.tradeStatus || trade.status),
     htfTimeframe: trade.htfTimeframe || '1H',
     ltfTimeframe: trade.ltfTimeframe || '5m',
     htfImageUploadData: trade.htfImageUploadData || '',
@@ -521,7 +523,23 @@ function getDayName(dateValue) {
   return date.toLocaleDateString('en-US', { weekday: 'long' });
 }
 
+function normalizeTradeStatus(value) {
+  const status = String(value || '').trim();
+  if (status === 'Missed Trade' || status === 'Missed') return 'Missed Trade';
+  if (status === 'Not Taken' || status === 'Skipped') return 'Not Taken';
+  return 'Took Trade';
+}
+
+function isCountedTrade(trade) {
+  return normalizeTradeStatus(trade?.tradeStatus || trade?.status) === 'Took Trade';
+}
+
+function getDisplayResult(trade) {
+  return isCountedTrade(trade) ? (trade.result || '-') : 'Not counted';
+}
+
 function calculatePnL(trade) {
+  if (!isCountedTrade(trade)) return 0;
   const risk = Number(trade.risk) || 0;
   const rr = Number(trade.rr) || 0;
   if (trade.result === 'TP' || trade.result === 'Win') return risk * rr;
@@ -780,6 +798,7 @@ function getCurrentWeekTrades() {
 function getFilteredTrades() {
   const query = searchInput?.value.trim().toLowerCase() || '';
   const direction = directionFilter?.value || 'All';
+  const status = statusFilter?.value || 'All';
   const pair = pairFilter?.value || 'All';
   const result = resultFilter?.value || 'All';
   const session = sessionFilter?.value || 'All';
@@ -795,6 +814,7 @@ function getFilteredTrades() {
 
   return trades
     .filter((trade) => (direction === 'All' ? true : trade.direction === direction))
+    .filter((trade) => (status === 'All' ? true : normalizeTradeStatus(trade.tradeStatus) === status))
     .filter((trade) => (pair === 'All' ? true : trade.pair === pair))
     .filter((trade) => (result === 'All' ? true : trade.result === result))
     .filter((trade) => (session === 'All' ? true : trade.session === session))
@@ -814,6 +834,7 @@ function getFilteredTrades() {
         trade.day,
         trade.pair,
         trade.direction,
+        normalizeTradeStatus(trade.tradeStatus),
         trade.session,
         trade.htfTimeframe,
         trade.ltfTimeframe,
@@ -837,11 +858,12 @@ function getFilteredTrades() {
 }
 
 function renderStats(list = trades, target = stats) {
-  const total = list.length;
-  const wins = list.filter((trade) => trade.result === 'TP' || trade.result === 'Win').length;
-  const losses = list.filter((trade) => trade.result === 'SL' || trade.result === 'Loss').length;
-  const totalPnL = list.reduce((sum, trade) => sum + calculatePnL(trade), 0);
-  const rrTrades = list.filter((trade) => trade.result !== 'BE');
+  const countedTrades = list.filter(isCountedTrade);
+  const total = countedTrades.length;
+  const wins = countedTrades.filter((trade) => trade.result === 'TP' || trade.result === 'Win').length;
+  const losses = countedTrades.filter((trade) => trade.result === 'SL' || trade.result === 'Loss').length;
+  const totalPnL = countedTrades.reduce((sum, trade) => sum + calculatePnL(trade), 0);
+  const rrTrades = countedTrades.filter((trade) => trade.result !== 'BE');
   const avgRR = rrTrades.length
     ? rrTrades.reduce((sum, trade) => sum + Number(trade.rr || 0), 0) / rrTrades.length
     : 0;
@@ -856,16 +878,16 @@ function renderStats(list = trades, target = stats) {
 }
 
 function isWin(trade) {
-  return trade.result === 'TP' || trade.result === 'Win';
+  return isCountedTrade(trade) && (trade.result === 'TP' || trade.result === 'Win');
 }
 
 function isLoss(trade) {
-  return trade.result === 'SL' || trade.result === 'Loss';
+  return isCountedTrade(trade) && (trade.result === 'SL' || trade.result === 'Loss');
 }
 
 function summarizeBy(fieldName, list = trades) {
   const groups = new Map();
-  list.forEach((trade) => {
+  list.filter(isCountedTrade).forEach((trade) => {
     const rawValues = Array.isArray(trade[fieldName]) ? trade[fieldName] : [trade[fieldName]];
     const values = rawValues.filter(Boolean).length ? rawValues.filter(Boolean) : ['Not tagged'];
     values.forEach((key) => {
@@ -966,26 +988,27 @@ function renderConditionCard(title, item, mode = 'best') {
 
 function renderEdgeSummary(list = trades, target = edgeSummary) {
   if (!target) return;
-  const total = list.length;
+  const countedList = list.filter(isCountedTrade);
+  const total = countedList.length;
   if (!total) {
     target.innerHTML = `
-      <article class="edge-card"><span>Status</span><strong>No data yet</strong><small>Add tagged trades to see similarities.</small></article>
+      <article class="edge-card"><span>Status</span><strong>No counted trades yet</strong><small>Missed / Not Taken setups are saved but excluded from P/L and win-rate analytics.</small></article>
       <article class="edge-card"><span>Goal</span><strong>Find your repeatable setup</strong><small>First/Second FVG, CISD quality, mitigation/retracement, entry level and BE logic.</small></article>
       <article class="edge-card"><span>Minimum</span><strong>30–50 trades</strong><small>That is when the patterns become more useful.</small></article>
     `;
     return;
   }
 
-  const cisd = getBestAndWorst('cisdType', list);
-  const fvgOrder = getBestAndWorst('fvgOrder', list);
-  const fvgLocation = getBestAndWorst('fvgLocation', list);
-  const mitigation = getBestAndWorst('htfRetracementTags', list);
-  const entry = getBestAndWorst('ltfEntryLevelTags', list);
-  const be = getBestAndWorst('beLogic', list);
+  const cisd = getBestAndWorst('cisdType', countedList);
+  const fvgOrder = getBestAndWorst('fvgOrder', countedList);
+  const fvgLocation = getBestAndWorst('fvgLocation', countedList);
+  const mitigation = getBestAndWorst('htfRetracementTags', countedList);
+  const entry = getBestAndWorst('ltfEntryLevelTags', countedList);
+  const be = getBestAndWorst('beLogic', countedList);
 
   target.innerHTML = [
-    renderSimilarityCard('Winning Trade Similarities', list, 'win'),
-    renderSimilarityCard('Losing Trade Similarities', list, 'loss'),
+    renderSimilarityCard('Winning Trade Similarities', countedList, 'win'),
+    renderSimilarityCard('Losing Trade Similarities', countedList, 'loss'),
     renderConditionCard('Best CISD Type', cisd.best, 'best'),
     renderConditionCard('Worst CISD Type', cisd.worst, 'worst'),
     renderConditionCard('Best FVG Order', fvgOrder.best, 'best'),
@@ -1008,12 +1031,13 @@ function renderTradeRows(list, targetBody, targetEmpty) {
     row.querySelector('.date-cell').innerHTML = `${escapeHtml(trade.date)}<br><small>${escapeHtml(trade.day || getDayName(trade.date))}</small>`;
     row.querySelector('.pair-cell').textContent = trade.pair || '-';
     row.querySelector('.direction-cell').innerHTML = `<span class="direction-badge ${String(trade.direction || '').toLowerCase()}">${escapeHtml(trade.direction || '-')}</span>`;
+    row.querySelector('.status-cell').innerHTML = `<span class="status-badge status-${getTradeStatusClass(trade)}">${escapeHtml(normalizeTradeStatus(trade.tradeStatus))}</span>`;
     row.querySelector('.setup-cell').textContent = trade.fvgOrder || '-';
     row.querySelector('.cisd-cell').textContent = trade.cisdType || '-';
 
     const resultPill = row.querySelector('.result-pill');
-    resultPill.textContent = trade.result || '-';
-    resultPill.classList.add(`result-${getResultClass(trade.result)}`);
+    resultPill.textContent = getDisplayResult(trade);
+    resultPill.classList.add(`result-${getResultClass(getDisplayResult(trade))}`);
 
     row.querySelector('.view-btn').addEventListener('click', () => viewTrade(trade.id));
     row.querySelector('.edit-btn').addEventListener('click', () => editTrade(trade.id));
@@ -1059,7 +1083,7 @@ function setAppView(view) {
 
 function clearResearchFilters() {
   if (searchInput) searchInput.value = '';
-  [directionFilter, pairFilter, resultFilter, sessionFilter, htfFilter, fvgFilter, cisdFilter, fvgLocationFilter, mitigationFilter, entryLevelFilter, beLogicFilter].forEach((filter) => {
+  [directionFilter, statusFilter, pairFilter, resultFilter, sessionFilter, htfFilter, fvgFilter, cisdFilter, fvgLocationFilter, mitigationFilter, entryLevelFilter, beLogicFilter].forEach((filter) => {
     if (filter) filter.value = 'All';
   });
   if (dateFromFilter) dateFromFilter.value = '';
@@ -1089,7 +1113,15 @@ function getResultClass(result) {
   const value = String(result || '').toLowerCase();
   if (value === 'tp' || value === 'win') return 'tp';
   if (value === 'sl' || value === 'loss') return 'sl';
+  if (value === 'not counted') return 'neutral';
   return 'be';
+}
+
+function getTradeStatusClass(trade) {
+  const value = normalizeTradeStatus(trade?.tradeStatus || trade?.status);
+  if (value === 'Missed Trade') return 'missed';
+  if (value === 'Not Taken') return 'not-taken';
+  return 'took';
 }
 
 function escapeHtml(value = '') {
@@ -1118,6 +1150,7 @@ function resetForm() {
   fields.htfTimeframe.value = '1H';
   fields.risk.value = 25;
   fields.rr.value = 1;
+  setChecked('tradeStatus', 'Took Trade');
   setChecked('tradeOutcome', 'BE');
   clearChecked('fvgOrder');
   clearChecked('cisdType');
@@ -1152,6 +1185,7 @@ function getFormTrade() {
     id: fields.tradeId.value || crypto.randomUUID(),
     date: fields.date.value,
     day: fields.day.value,
+    tradeStatus: getChecked('tradeStatus') || 'Took Trade',
     pair: fields.pair.value,
     direction: fields.direction.value,
     session: fields.session.value,
@@ -1188,7 +1222,7 @@ function viewTrade(id) {
   const pnl = calculatePnL(trade);
   if (detailsModal.title) detailsModal.title.textContent = `${trade.pair || '-'} ${trade.direction || ''}`.trim();
   if (detailsModal.subtitle) {
-    detailsModal.subtitle.textContent = `${trade.date || '-'} · ${trade.day || getDayName(trade.date)} · ${trade.session || '-'} · ${trade.htfTimeframe || '-'} → ${trade.ltfTimeframe || '-'}`;
+    detailsModal.subtitle.textContent = `${normalizeTradeStatus(trade.tradeStatus)} · ${trade.date || '-'} · ${trade.day || getDayName(trade.date)} · ${trade.session || '-'} · ${trade.htfTimeframe || '-'} → ${trade.ltfTimeframe || '-'}`;
   }
   if (detailsModal.body) detailsModal.body.innerHTML = buildTradeDetails(trade, pnl);
 
@@ -1210,7 +1244,8 @@ function buildTradeDetails(trade, pnl) {
   const ltfLinks = filledLinks(normalizeChartLinks(trade.ltfChartLinks, 'ltf'));
   return `
     <section class="details-overview-grid">
-      ${detailMetric('Result', `<span class="result-pill result-${getResultClass(trade.result)}">${escapeHtml(trade.result || '-')}</span>`, true)}
+      ${detailMetric('Status', `<span class="status-badge status-${getTradeStatusClass(trade)}">${escapeHtml(normalizeTradeStatus(trade.tradeStatus))}</span>`, true)}
+      ${detailMetric('Result', `<span class="result-pill result-${getResultClass(getDisplayResult(trade))}">${escapeHtml(getDisplayResult(trade))}</span>`, true)}
       ${detailMetric('Risk', `$${Number(trade.risk || 0).toFixed(2)}`)}
       ${detailMetric('RR', `${Number(trade.rr || 0).toFixed(2)}R`)}
       ${detailMetric('P/L', `<span class="${pnl >= 0 ? 'pnl-positive' : 'pnl-negative'}">${money(pnl)}</span>`, true)}
@@ -1223,6 +1258,7 @@ function buildTradeDetails(trade, pnl) {
       </div>
       <div class="details-grid">
         ${detailItem('Date', `${trade.date || '-'} · ${trade.day || getDayName(trade.date)}`)}
+        ${detailItem('Status', normalizeTradeStatus(trade.tradeStatus))}
         ${detailItem('Pair', trade.pair || '-')}
         ${detailItem('Direction', trade.direction || '-')}
         ${detailItem('Session', trade.session || '-')}
@@ -1306,6 +1342,7 @@ function editTrade(id) {
   fields.tradeId.value = trade.id;
   fields.date.value = trade.date;
   fields.day.value = trade.day || getDayName(trade.date);
+  setChecked('tradeStatus', normalizeTradeStatus(trade.tradeStatus));
   fields.pair.value = trade.pair || 'EURUSD';
   fields.direction.value = trade.direction || 'Long';
   fields.session.value = trade.session || 'London';
@@ -1373,14 +1410,15 @@ function buildDeleteTradeSummary(trade) {
   return `
     <div class="delete-summary-main">
       <strong>${escapeHtml(trade.pair || '-')} ${escapeHtml(trade.direction || '')}</strong>
-      <span>${escapeHtml(trade.date || '-')} · ${escapeHtml(trade.day || getDayName(trade.date))} · ${escapeHtml(trade.session || '-')}</span>
+      <span>${escapeHtml(normalizeTradeStatus(trade.tradeStatus))} · ${escapeHtml(trade.date || '-')} · ${escapeHtml(trade.day || getDayName(trade.date))} · ${escapeHtml(trade.session || '-')}</span>
     </div>
     <div class="delete-summary-grid">
+      <div><span>Status</span><strong>${escapeHtml(normalizeTradeStatus(trade.tradeStatus))}</strong></div>
       <div><span>HTF → LTF</span><strong>${escapeHtml(trade.htfTimeframe || '-')} → ${escapeHtml(trade.ltfTimeframe || '-')}</strong></div>
       <div><span>FVG Order</span><strong>${escapeHtml(trade.fvgOrder || '-')}</strong></div>
       <div><span>CISD</span><strong>${escapeHtml(trade.cisdType || '-')}</strong></div>
       <div><span>FVG Location</span><strong>${escapeHtml(trade.fvgLocation || '-')}</strong></div>
-      <div><span>Result</span><strong>${escapeHtml(trade.result || '-')}</strong></div>
+      <div><span>Result</span><strong>${escapeHtml(getDisplayResult(trade))}</strong></div>
       <div><span>RR</span><strong>${Number(trade.rr || 0).toFixed(2)}R</strong></div>
       <div><span>P/L</span><strong class="${pnl >= 0 ? 'pnl-positive' : 'pnl-negative'}">${money(pnl)}</strong></div>
     </div>
@@ -1428,7 +1466,7 @@ function exportJson() {
 
 function exportCsv() {
   const headers = [
-    'Date', 'Day', 'Pair', 'Direction', 'Session', 'HTF', 'Auto LTF', 'FVG Order',
+    'Date', 'Day', 'Trade Status', 'Pair', 'Direction', 'Session', 'HTF', 'Auto LTF', 'FVG Order',
     'CISD Type', 'FVG Location', 'HTF Mitigation / Entry Behavior Tags',
     'LTF Entry Level Tags', 'BE Logic', 'Risk', 'Result', 'RR', 'PnL',
     'HTF Chart Links', 'LTF Chart Links', 'HTF Notes', 'General Notes'
@@ -1436,6 +1474,7 @@ function exportCsv() {
   const rows = trades.map((trade) => [
     trade.date,
     trade.day,
+    normalizeTradeStatus(trade.tradeStatus),
     trade.pair,
     trade.direction,
     trade.session,
@@ -1646,6 +1685,7 @@ wireNoneOption('htfRetracementTags');
 
 searchInput?.addEventListener('input', renderResearch);
 directionFilter?.addEventListener('change', renderResearch);
+statusFilter?.addEventListener('change', renderResearch);
 pairFilter?.addEventListener('change', renderResearch);
 resultFilter?.addEventListener('change', renderResearch);
 sessionFilter?.addEventListener('change', renderResearch);
