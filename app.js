@@ -570,8 +570,10 @@ function normalizeFvgStatus(value) {
 
 function normalizeCisdStatus(value) {
   const status = String(value || '').trim().toLowerCase();
+  if (!status || status === 'none' || status === 'null' || status === 'undefined') return 'NONE';
   if (status === 'old cisd fvg' || status === "old cisd's fvg" || status === 'old cisd') return 'Old CISD FVG';
-  return 'Old FVG';
+  if (status === 'old fvg' || status === 'old') return 'Old FVG';
+  return 'NONE';
 }
 
 function getEntryAttemptShort(trade) {
