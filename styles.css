@@ -1784,3 +1784,369 @@ textarea:hover {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* v25 FVG status + compact HTF/LTF timeframe row */
+.basic-side-stack {
+  display: grid;
+  gap: 0.9rem;
+  min-width: 0;
+}
+.fvg-status-card .choice-grid.two-choice,
+.entry-attempt-card .choice-grid.two-choice {
+  grid-template-columns: 1fr;
+}
+.fvg-status-card .status-choice-card .choice-body {
+  min-height: 4.15rem;
+}
+.timeframe-layout {
+  align-items: end;
+}
+.timeframe-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+  min-width: 0;
+}
+.timeframe-pair label {
+  min-width: 0;
+}
+.timeframe-pair input[readonly] {
+  color: #bbf7d0;
+  background: rgba(20, 83, 45, 0.22);
+  border-color: rgba(34, 197, 94, 0.22);
+}
+@media (max-width: 1050px) {
+  .fvg-status-card .choice-grid.two-choice,
+  .entry-attempt-card .choice-grid.two-choice {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 760px) {
+  .timeframe-layout,
+  .timeframe-pair {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 620px) {
+  .fvg-status-card .choice-grid.two-choice,
+  .entry-attempt-card .choice-grid.two-choice {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* v26 Basic Info layout polish */
+.trade-entry-card {
+  width: min(1180px, 96vw);
+}
+
+#basicStep {
+  display: grid;
+  gap: 1rem;
+}
+
+.basic-layout-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.38fr) minmax(320px, 0.72fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.basic-main-stack,
+.basic-side-stack {
+  display: grid;
+  gap: 0.9rem;
+  min-width: 0;
+  align-content: start;
+}
+
+.basic-field-card,
+.session-timeframe-card {
+  border: 1px solid var(--line);
+  background: rgba(11, 18, 32, 0.72);
+  border-radius: 1rem;
+  padding: 1rem;
+}
+
+.basic-field-card {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.basic-field-card label,
+.session-timeframe-card label {
+  gap: 0.48rem;
+  line-height: 1.25;
+}
+
+.basic-field-card input,
+.basic-field-card select,
+.session-timeframe-card input,
+.session-timeframe-card select {
+  min-height: 48px;
+}
+
+.trade-status-card,
+.entry-attempt-card,
+.fvg-status-card,
+.session-timeframe-card {
+  align-self: start;
+}
+
+.trade-status-card .choice-grid.three-choice {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.trade-status-card .status-choice-card .choice-body {
+  min-height: 4.55rem;
+}
+
+.entry-attempt-card .status-choice-card .choice-body,
+.fvg-status-card .status-choice-card .choice-body {
+  min-height: 4.2rem;
+}
+
+.session-timeframe-card .question-number {
+  margin-bottom: 0.8rem;
+}
+
+.session-timeframe-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+  align-items: end;
+}
+
+.session-timeframe-grid label:first-child {
+  grid-column: 1 / -1;
+}
+
+.session-timeframe-grid input[readonly] {
+  color: #bbf7d0;
+  background: rgba(20, 83, 45, 0.22);
+  border-color: rgba(34, 197, 94, 0.22);
+}
+
+.basic-footer-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+@media (max-width: 1120px) {
+  .basic-layout-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .trade-status-card .choice-grid.three-choice,
+  .entry-attempt-card .choice-grid.two-choice,
+  .fvg-status-card .choice-grid.two-choice {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .basic-side-stack {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .session-timeframe-card {
+    grid-column: 1 / -1;
+  }
+
+  .session-timeframe-grid {
+    grid-template-columns: 1.1fr 1fr 0.85fr;
+  }
+
+  .session-timeframe-grid label:first-child {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 720px) {
+  .trade-status-card .choice-grid.three-choice,
+  .entry-attempt-card .choice-grid.two-choice,
+  .fvg-status-card .choice-grid.two-choice,
+  .basic-field-card .grid.two,
+  .basic-side-stack,
+  .session-timeframe-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .session-timeframe-grid label:first-child,
+  .session-timeframe-card {
+    grid-column: auto;
+  }
+
+  .basic-footer-actions button {
+    width: 100%;
+  }
+}
+
+/* v27 Basic Info final polish */
+.trade-entry-card {
+  width: min(1180px, 96vw);
+}
+
+#basicStep {
+  display: grid;
+  gap: 0.95rem;
+}
+
+.basic-final-layout {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.basic-final-layout .question-card,
+.basic-final-layout .basic-field-card {
+  margin: 0;
+}
+
+.basic-details-card {
+  display: grid;
+  gap: 0.85rem;
+  padding: 1rem;
+}
+
+.basic-details-card .question-number {
+  margin-bottom: 0;
+}
+
+.basic-details-grid {
+  display: grid;
+  gap: 0.82rem;
+  align-items: end;
+}
+
+.basic-details-grid.first-row {
+  grid-template-columns: 1.05fr 1fr 1fr;
+}
+
+.basic-details-grid.second-row {
+  grid-template-columns: 0.95fr 1.05fr 1.45fr;
+}
+
+.basic-details-card label,
+.timeframe-pair-inline label {
+  gap: 0.42rem;
+  line-height: 1.25;
+}
+
+.basic-details-card input,
+.basic-details-card select {
+  min-height: 48px;
+}
+
+.timeframe-pair-inline {
+  display: grid;
+  grid-template-columns: 1fr 0.82fr;
+  gap: 0.72rem;
+  min-width: 0;
+}
+
+.timeframe-pair-inline input[readonly] {
+  color: #bbf7d0;
+  background: rgba(20, 83, 45, 0.22);
+  border-color: rgba(34, 197, 94, 0.22);
+}
+
+.setup-details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+  align-items: start;
+}
+
+.setup-details-grid .choice-grid.two-choice {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.setup-details-grid .status-choice-card .choice-body,
+.trade-status-card .status-choice-card .choice-body {
+  min-height: 4.35rem;
+}
+
+.trade-status-card .choice-grid.three-choice {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.basic-footer-actions {
+  margin-top: 0.1rem;
+}
+
+@media (max-width: 900px) {
+  .basic-details-grid.first-row,
+  .basic-details-grid.second-row,
+  .setup-details-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .timeframe-pair-inline {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 640px) {
+  .basic-details-grid.first-row,
+  .basic-details-grid.second-row,
+  .timeframe-pair-inline,
+  .setup-details-grid,
+  .setup-details-grid .choice-grid.two-choice,
+  .trade-status-card .choice-grid.three-choice {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* Basic Details equal 3-column layout */
+
+.basic-details-grid.first-row,
+.basic-details-grid.second-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.9rem;
+  align-items: end;
+}
+
+/* HTF + Auto LTF together should take same width as Pair */
+.timeframe-pair-inline {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  align-items: end;
+}
+
+/* Make all labels clean and prevent overlap */
+.basic-details-card label,
+.timeframe-pair-inline label {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+  line-height: 1.25;
+}
+
+/* Equal input/select height */
+.basic-details-card input,
+.basic-details-card select {
+  min-height: 46px;
+}
+
+/* Tablet */
+@media (max-width: 900px) {
+  .basic-details-grid.first-row,
+  .basic-details-grid.second-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .timeframe-pair-inline {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Mobile */
+@media (max-width: 640px) {
+  .basic-details-grid.first-row,
+  .basic-details-grid.second-row,
+  .timeframe-pair-inline {
+    grid-template-columns: 1fr;
+  }
+}

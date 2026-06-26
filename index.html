@@ -10,6 +10,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Trading Journal" />
     <link rel="manifest" href="manifest.json" />
+    <link rel="icon" type="image/png" sizes="192x192" href="assets/icons/icon-192.png" />
     <link rel="apple-touch-icon" href="assets/icons/icon-192.png" />
     <link rel="stylesheet" href="styles.css" />
   </head>
@@ -185,6 +186,11 @@
               <option value="1st Entry">1st Entry</option>
               <option value="2nd Entry">2nd Entry</option>
             </select>
+            <select id="fvgStatusFilter">
+              <option value="All">All FVG Status</option>
+              <option value="Fresh FVG">Fresh FVG</option>
+              <option value="Partial FVG">Partial FVG</option>
+            </select>
             <select id="pairFilter">
               <option value="All">All Pairs</option>
               <option value="EURUSD">EURUSD</option>
@@ -324,7 +330,7 @@
           <input id="tradeId" type="hidden" />
 
           <section id="basicStep" class="form-step active">
-            <div class="basic-intent-grid">
+            <div class="basic-final-layout">
               <div class="question-card compact-question trade-status-card">
                 <p class="question-number">Trade Status</p>
                 <h3>Did you take this setup?</h3>
@@ -344,82 +350,103 @@
                 </div>
               </div>
 
-              <div class="question-card compact-question entry-attempt-card">
-                <p class="question-number">Entry Attempt</p>
-                <h3>Which entry is this?</h3>
-                <div class="choice-grid two-choice">
-                  <label class="choice-card status-choice-card">
-                    <input type="radio" name="entryAttempt" value="1st Entry" checked />
-                    <span class="choice-body"><strong>1st Entry</strong><small>First valid entry for this setup.</small></span>
+              <div class="basic-field-card basic-details-card">
+                <p class="question-number">Basic Details</p>
+                <div class="basic-details-grid first-row">
+                  <label>
+                    Date
+                    <input id="date" type="date" required />
                   </label>
-                  <label class="choice-card status-choice-card">
-                    <input type="radio" name="entryAttempt" value="2nd Entry" />
-                    <span class="choice-body"><strong>2nd Entry</strong><small>Second valid entry for the same FVG.</small></span>
+                  <label>
+                    Day
+                    <input id="day" type="text" readonly />
                   </label>
+                  <label>
+                    Pair
+                    <select id="pair" required>
+                      <option value="EURUSD">EURUSD</option>
+                      <option value="GBPUSD">GBPUSD</option>
+                      <option value="XAUUSD">XAUUSD</option>
+                      <option value="XAGUSD">XAGUSD</option>
+                      <option value="BTCUSD">BTCUSD</option>
+                      <option value="NQ">NQ</option>
+                      <option value="ES">ES</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </label>
+                </div>
+
+                <div class="basic-details-grid second-row">
+                  <label>
+                    Direction
+                    <select id="direction" required>
+                      <option value="Long">Long</option>
+                      <option value="Short">Short</option>
+                    </select>
+                  </label>
+                  <label>
+                    Session
+                    <select id="session" required>
+                      <option value="London">London</option>
+                      <option value="New York">New York</option>
+                      <option value="Asia">Asia</option>
+                      <option value="London + NY">London + NY</option>
+                    </select>
+                  </label>
+                  <div class="timeframe-pair-inline">
+                    <label>
+                      HTF Timeframe
+                      <select id="htfTimeframe" required>
+                        <option value="15m">15m</option>
+                        <option value="1H">1H</option>
+                        <option value="4H">4H</option>
+                        <option value="1D">1D</option>
+                      </select>
+                    </label>
+                    <label>
+                      Auto LTF
+                      <input id="ltfTimeframe" type="text" readonly />
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div class="setup-details-grid">
+                <div class="question-card compact-question entry-attempt-card">
+                  <p class="question-number">Entry Attempt</p>
+                  <h3>Which entry is this?</h3>
+                  <div class="choice-grid two-choice">
+                    <label class="choice-card status-choice-card">
+                      <input type="radio" name="entryAttempt" value="1st Entry" checked />
+                      <span class="choice-body"><strong>1st Entry</strong><small>First valid entry for this setup.</small></span>
+                    </label>
+                    <label class="choice-card status-choice-card">
+                      <input type="radio" name="entryAttempt" value="2nd Entry" />
+                      <span class="choice-body"><strong>2nd Entry</strong><small>Second valid entry for the same FVG.</small></span>
+                    </label>
+                  </div>
+                </div>
+
+                <div class="question-card compact-question fvg-status-card">
+                  <p class="question-number">FVG Status</p>
+                  <h3>Is this FVG new or partial?</h3>
+                  <div class="choice-grid two-choice">
+                    <label class="choice-card status-choice-card">
+                      <input type="radio" name="fvgStatus" value="Fresh FVG" checked />
+                      <span class="choice-body"><strong>Fresh FVG</strong><small>New imbalance area.</small></span>
+                    </label>
+                    <label class="choice-card status-choice-card">
+                      <input type="radio" name="fvgStatus" value="Partial FVG" />
+                      <span class="choice-body"><strong>Partial FVG</strong><small>Partially used / revisited FVG.</small></span>
+                    </label>
+                  </div>
                 </div>
               </div>
             </div>
-            <div class="grid two">
-              <label>
-                Date
-                <input id="date" type="date" required />
-              </label>
-              <label>
-                Day
-                <input id="day" type="text" readonly />
-              </label>
+
+            <div class="basic-footer-actions">
+              <button id="continueHtfBtn" class="primary" type="button">Continue to HTF Analysis</button>
             </div>
-
-            <div class="grid two">
-              <label>
-                Pair
-                <select id="pair" required>
-                  <option value="EURUSD">EURUSD</option>
-                  <option value="GBPUSD">GBPUSD</option>
-                  <option value="XAUUSD">XAUUSD</option>
-                  <option value="XAGUSD">XAGUSD</option>
-                  <option value="BTCUSD">BTCUSD</option>
-                  <option value="NQ">NQ</option>
-                  <option value="ES">ES</option>
-                  <option value="Other">Other</option>
-                </select>
-              </label>
-              <label>
-                Direction
-                <select id="direction" required>
-                  <option value="Long">Long</option>
-                  <option value="Short">Short</option>
-                </select>
-              </label>
-            </div>
-
-            <div class="grid two">
-              <label>
-                Session
-                <select id="session" required>
-                  <option value="London">London</option>
-                  <option value="New York">New York</option>
-                  <option value="Asia">Asia</option>
-                  <option value="London + NY">London + NY</option>
-                </select>
-              </label>
-              <label>
-                HTF Timeframe
-                <select id="htfTimeframe" required>
-                  <option value="15m">15m</option>
-                  <option value="1H">1H</option>
-                  <option value="4H">4H</option>
-                  <option value="1D">1D</option>
-                </select>
-              </label>
-            </div>
-
-            <label>
-              Auto LTF Timeframe
-              <input id="ltfTimeframe" type="text" readonly />
-            </label>
-
-            <button id="continueHtfBtn" class="primary" type="button">Continue to HTF Analysis</button>
           </section>
         </form>
       </section>

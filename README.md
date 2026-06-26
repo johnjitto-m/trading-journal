@@ -25,3 +25,25 @@ Files added:
 - `manifest.json`
 - `service-worker.js`
 - `assets/icons/`
+
+
+## v25 updates
+
+- Added FVG Status: Fresh FVG / Partial FVG in Basic Info.
+- Added FVG Status filter and saved/exported field.
+- Moved Auto LTF next to HTF Timeframe instead of a full-width row.
+
+
+## v27
+
+- Final Basic Info layout polish.
+- Trade Status is full-width at the top.
+- Basic Details now uses a compact Date / Day / Pair row and Direction / Session / HTF + Auto LTF row.
+- Entry Attempt and FVG Status now sit side by side in Setup Details.
+- Fixed label spacing and reduced empty space / scrolling in Step 1.
+
+## v26
+- Polished Basic Info layout.
+- Removed empty Trade Status space by moving Date/Pair fields into the left column.
+- Moved Session/HTF/Auto LTF into a compact right-side card.
+- Fixed label spacing to avoid overlap.
