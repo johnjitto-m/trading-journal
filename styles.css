@@ -2097,44 +2097,116 @@ textarea:hover {
 }
 
 
-/* Basic Details equal 3-column layout */
+/* v28 Basic Info final layout */
+.trade-entry-card {
+  width: min(1220px, 96vw);
+}
 
-.basic-details-grid.first-row,
-.basic-details-grid.second-row {
+#basicStep {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.9rem;
-  align-items: end;
 }
 
-/* HTF + Auto LTF together should take same width as Pair */
-.timeframe-pair-inline {
+.basic-final-layout {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.75rem;
+  gap: 0.9rem;
+}
+
+.basic-final-layout .question-card,
+.basic-final-layout .basic-field-card {
+  margin: 0;
+}
+
+.basic-details-card {
+  display: grid;
+  gap: 0.85rem;
+  padding: 1rem;
+}
+
+.basic-details-card .question-number {
+  margin-bottom: 0;
+}
+
+.basic-details-grid {
+  display: grid !important;
+  gap: 0.85rem;
   align-items: end;
 }
 
-/* Make all labels clean and prevent overlap */
+.basic-details-grid.first-row {
+  grid-template-columns: 1.1fr 0.9fr 1fr !important;
+}
+
+.basic-details-grid.second-row {
+  grid-template-columns: 0.9fr 1fr minmax(220px, 1.15fr) !important;
+}
+
+.timeframe-pair-inline {
+  display: grid !important;
+  grid-template-columns: 1fr 0.8fr !important;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
 .basic-details-card label,
 .timeframe-pair-inline label {
   display: grid;
-  gap: 0.35rem;
-  margin: 0;
+  gap: 0.4rem;
   line-height: 1.25;
+  margin: 0;
 }
 
-/* Equal input/select height */
 .basic-details-card input,
 .basic-details-card select {
-  min-height: 46px;
+  min-height: 48px;
 }
 
-/* Tablet */
-@media (max-width: 900px) {
+.timeframe-pair-inline input[readonly] {
+  color: #bbf7d0;
+  background: rgba(20, 83, 45, 0.22);
+  border-color: rgba(34, 197, 94, 0.22);
+}
+
+.classification-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.9fr);
+  gap: 0.9rem;
+  align-items: stretch;
+}
+
+.setup-classification-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.classification-grid .question-card {
+  display: grid;
+  align-content: start;
+  gap: 0.65rem;
+}
+
+.classification-grid .choice-grid.two-choice {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+.trade-status-card .choice-grid.three-choice {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+.classification-grid .status-choice-card .choice-body,
+.trade-status-card .status-choice-card .choice-body {
+  min-height: 3.95rem;
+}
+
+.basic-footer-actions {
+  margin-top: 0.1rem;
+}
+
+@media (max-width: 980px) {
   .basic-details-grid.first-row,
-  .basic-details-grid.second-row {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .basic-details-grid.second-row,
+  .classification-grid,
+  .setup-classification-grid {
+    grid-template-columns: 1fr 1fr !important;
   }
 
   .timeframe-pair-inline {
@@ -2142,11 +2214,84 @@ textarea:hover {
   }
 }
 
-/* Mobile */
 @media (max-width: 640px) {
   .basic-details-grid.first-row,
   .basic-details-grid.second-row,
+  .timeframe-pair-inline,
+  .classification-grid,
+  .setup-classification-grid,
+  .classification-grid .choice-grid.two-choice,
+  .trade-status-card .choice-grid.three-choice {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* v29 Basic Info equal alignment polish */
+.trade-entry-card {
+  width: min(1220px, 96vw);
+}
+
+.basic-details-grid.first-row {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+.basic-details-grid.second-row {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+.timeframe-pair-inline {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 0.75rem;
+}
+
+.classification-grid,
+.setup-classification-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+.trade-status-card .choice-grid.three-choice {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+.classification-grid .choice-grid.two-choice,
+.setup-classification-grid .choice-grid.two-choice {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+.basic-details-card label,
+.timeframe-pair-inline label {
+  min-width: 0;
+}
+
+.basic-details-card input,
+.basic-details-card select,
+.timeframe-pair-inline input,
+.timeframe-pair-inline select {
+  width: 100%;
+}
+
+@media (max-width: 980px) {
+  .basic-details-grid.first-row,
+  .basic-details-grid.second-row,
+  .classification-grid,
+  .setup-classification-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
   .timeframe-pair-inline {
-    grid-template-columns: 1fr;
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 640px) {
+  .basic-details-grid.first-row,
+  .basic-details-grid.second-row,
+  .timeframe-pair-inline,
+  .classification-grid,
+  .setup-classification-grid,
+  .classification-grid .choice-grid.two-choice,
+  .setup-classification-grid .choice-grid.two-choice,
+  .trade-status-card .choice-grid.three-choice {
+    grid-template-columns: 1fr !important;
   }
 }

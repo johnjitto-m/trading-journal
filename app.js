@@ -28,7 +28,6 @@ const htfToLtf = {
 
 const defaultChartLinks = {
   htf: [
-    { label: 'HTF before mitigation', url: '' },
     { label: 'HTF current mitigation', url: '' },
   ],
   ltf: [
@@ -49,6 +48,7 @@ const directionFilter = document.querySelector('#directionFilter');
 const statusFilter = document.querySelector('#statusFilter');
 const entryAttemptFilter = document.querySelector('#entryAttemptFilter');
 const fvgStatusFilter = document.querySelector('#fvgStatusFilter');
+const cisdStatusFilter = document.querySelector('#cisdStatusFilter');
 const pairFilter = document.querySelector('#pairFilter');
 const resultFilter = document.querySelector('#resultFilter');
 const sessionFilter = document.querySelector('#sessionFilter');
@@ -214,8 +214,9 @@ function migrateOldTrade(trade) {
     tradeStatus: normalizeTradeStatus(trade.tradeStatus || trade.status),
     entryAttempt: normalizeEntryAttempt(trade.entryAttempt || trade.entry || trade.attempt),
     fvgStatus: normalizeFvgStatus(trade.fvgStatus || trade.fvgFreshness || trade.fvgState),
-    htfTimeframe: trade.htfTimeframe || '1H',
-    ltfTimeframe: trade.ltfTimeframe || '5m',
+    cisdStatus: normalizeCisdStatus(trade.cisdStatus || trade.cisdSupport || trade.cisdState),
+    htfTimeframe: trade.htfTimeframe || '15m',
+    ltfTimeframe: trade.ltfTimeframe || '1m',
     htfImageUploadData: trade.htfImageUploadData || '',
     ltfImageUploadData: trade.ltfImageUploadData || '',
     htfChartLinks: htfLinks,
@@ -567,6 +568,12 @@ function normalizeFvgStatus(value) {
   return 'Fresh FVG';
 }
 
+function normalizeCisdStatus(value) {
+  const status = String(value || '').trim().toLowerCase();
+  if (status === 'old cisd fvg' || status === "old cisd's fvg" || status === 'old cisd') return 'Old CISD FVG';
+  return 'Old FVG';
+}
+
 function getEntryAttemptShort(trade) {
   return normalizeEntryAttempt(trade?.entryAttempt || trade?.entry || trade?.attempt) === '2nd Entry' ? '2nd' : '1st';
 }
@@ -863,6 +870,7 @@ function getFilteredTrades() {
   const status = statusFilter?.value || 'All';
   const entryAttempt = entryAttemptFilter?.value || 'All';
   const fvgStatus = fvgStatusFilter?.value || 'All';
+  const cisdStatus = cisdStatusFilter?.value || 'All';
   const pair = pairFilter?.value || 'All';
   const result = resultFilter?.value || 'All';
   const session = sessionFilter?.value || 'All';
@@ -881,6 +889,7 @@ function getFilteredTrades() {
     .filter((trade) => (status === 'All' ? true : normalizeTradeStatus(trade.tradeStatus) === status))
     .filter((trade) => (entryAttempt === 'All' ? true : normalizeEntryAttempt(trade.entryAttempt) === entryAttempt))
     .filter((trade) => (fvgStatus === 'All' ? true : normalizeFvgStatus(trade.fvgStatus) === fvgStatus))
+    .filter((trade) => (cisdStatus === 'All' ? true : normalizeCisdStatus(trade.cisdStatus) === cisdStatus))
     .filter((trade) => (pair === 'All' ? true : trade.pair === pair))
     .filter((trade) => (result === 'All' ? true : trade.result === result))
     .filter((trade) => (session === 'All' ? true : trade.session === session))
@@ -904,6 +913,7 @@ function getFilteredTrades() {
         normalizeTradeStatus(trade.tradeStatus),
         normalizeEntryAttempt(trade.entryAttempt),
         normalizeFvgStatus(trade.fvgStatus),
+        normalizeCisdStatus(trade.cisdStatus),
         trade.session,
         trade.htfTimeframe,
         trade.ltfTimeframe,
@@ -1007,6 +1017,7 @@ function getSimilarityItems(list, resultType) {
   const fieldsToCheck = [
     { label: 'FVG order', field: 'fvgOrder' },
     { label: 'FVG status', field: 'fvgStatus' },
+    { label: 'CISD support', field: 'cisdStatus' },
     { label: 'CISD type', field: 'cisdType' },
     { label: 'FVG location', field: 'fvgLocation' },
     { label: 'Mitigation', field: 'htfRetracementTags' },
@@ -1092,6 +1103,7 @@ function renderEdgeSummary(list = trades, target = edgeSummary) {
   const cisd = getBestAndWorst('cisdType', countedList);
   const fvgOrder = getBestAndWorst('fvgOrder', countedList);
   const fvgLocation = getBestAndWorst('fvgLocation', countedList);
+  const cisdSupport = getBestAndWorst('cisdStatus', countedList);
   const mitigation = getBestAndWorst('htfRetracementTags', countedList);
   const entry = getBestAndWorst('ltfEntryLevelTags', countedList);
   const be = getBestAndWorst('beLogic', countedList);
@@ -1103,6 +1115,7 @@ function renderEdgeSummary(list = trades, target = edgeSummary) {
     renderConditionCard('Worst CISD Type', cisd.worst, 'worst'),
     renderConditionCard('Best FVG Order', fvgOrder.best, 'best'),
     renderConditionCard('Best FVG Location', fvgLocation.best, 'best'),
+    renderConditionCard('Best CISD Support', cisdSupport.best, 'best'),
     renderConditionCard('Best Mitigation Tag', mitigation.best, 'best'),
     renderConditionCard('Worst Mitigation Tag', mitigation.worst, 'worst'),
     renderConditionCard('Best Entry Level', entry.best, 'best'),
@@ -1175,7 +1188,7 @@ function setAppView(view) {
 
 function clearResearchFilters() {
   if (searchInput) searchInput.value = '';
-  [directionFilter, statusFilter, entryAttemptFilter, fvgStatusFilter, pairFilter, resultFilter, sessionFilter, htfFilter, fvgFilter, cisdFilter, fvgLocationFilter, mitigationFilter, entryLevelFilter, beLogicFilter].forEach((filter) => {
+  [directionFilter, statusFilter, entryAttemptFilter, fvgStatusFilter, cisdStatusFilter, pairFilter, resultFilter, sessionFilter, htfFilter, fvgFilter, cisdFilter, fvgLocationFilter, mitigationFilter, entryLevelFilter, beLogicFilter].forEach((filter) => {
     if (filter) filter.value = 'All';
   });
   if (dateFromFilter) dateFromFilter.value = '';
@@ -1264,6 +1277,7 @@ function resetForm() {
   setChecked('tradeStatus', 'Took Trade');
   setChecked('entryAttempt', '1st Entry');
   setChecked('fvgStatus', 'Fresh FVG');
+  setChecked('cisdStatus', 'NONE');
   setChecked('tradeOutcome', 'BE');
   clearChecked('fvgOrder');
   clearChecked('cisdType');
@@ -1305,6 +1319,7 @@ function getFormTrade() {
     tradeStatus: getChecked('tradeStatus') || 'Took Trade',
     entryAttempt: getChecked('entryAttempt') || '1st Entry',
     fvgStatus: getChecked('fvgStatus') || 'Fresh FVG',
+    cisdStatus: getChecked('cisdStatus') || 'NONE',
     pair: fields.pair.value,
     direction: fields.direction.value,
     session: fields.session.value,
@@ -1367,6 +1382,7 @@ function buildTradeDetails(trade, pnl) {
       ${detailMetric('Status', `<span class="status-badge status-${getTradeStatusClass(trade)}">${escapeHtml(normalizeTradeStatus(trade.tradeStatus))}</span>`, true)}
       ${detailMetric('Entry Attempt', `<span class="entry-badge entry-${getEntryAttemptShort(trade).toLowerCase()}">${escapeHtml(normalizeEntryAttempt(trade.entryAttempt))}</span>`, true)}
       ${detailMetric('FVG Status', normalizeFvgStatus(trade.fvgStatus))}
+      ${detailMetric('CISD Support', normalizeCisdStatus(trade.cisdStatus))}
       ${detailMetric('Result', `<span class="result-pill result-${getResultClass(getDisplayResult(trade))}">${escapeHtml(getDisplayResult(trade))}</span>`, true)}
       ${detailMetric('Risk', `$${Number(trade.risk || 0).toFixed(2)}`)}
       ${detailMetric('RR', `${Number(trade.rr || 0).toFixed(2)}R`)}
@@ -1383,6 +1399,7 @@ function buildTradeDetails(trade, pnl) {
         ${detailItem('Status', normalizeTradeStatus(trade.tradeStatus))}
         ${detailItem('Entry Attempt', normalizeEntryAttempt(trade.entryAttempt))}
         ${detailItem('FVG Status', normalizeFvgStatus(trade.fvgStatus))}
+        ${detailItem('CISD Support', normalizeCisdStatus(trade.cisdStatus))}
         ${detailItem('Pair', trade.pair || '-')}
         ${detailItem('Direction', trade.direction || '-')}
         ${detailItem('Session', trade.session || '-')}
@@ -1398,6 +1415,7 @@ function buildTradeDetails(trade, pnl) {
       </div>
       <div class="details-grid">
         ${detailItem('FVG Status', normalizeFvgStatus(trade.fvgStatus))}
+        ${detailItem('CISD Support', normalizeCisdStatus(trade.cisdStatus))}
         ${detailItem('FVG Order', trade.fvgOrder || '-')}
         ${detailItem('CISD Type', trade.cisdType || '-')}
         ${detailItem('FVG Location', trade.fvgLocation || '-')}
@@ -1470,6 +1488,7 @@ function editTrade(id) {
   setChecked('tradeStatus', normalizeTradeStatus(trade.tradeStatus));
   setChecked('entryAttempt', normalizeEntryAttempt(trade.entryAttempt));
   setChecked('fvgStatus', normalizeFvgStatus(trade.fvgStatus));
+  setChecked('cisdStatus', normalizeCisdStatus(trade.cisdStatus));
   fields.pair.value = trade.pair || 'EURUSD';
   fields.direction.value = trade.direction || 'Long';
   fields.session.value = trade.session || 'London';
@@ -1543,6 +1562,7 @@ function buildDeleteTradeSummary(trade) {
       <div><span>Status</span><strong>${escapeHtml(normalizeTradeStatus(trade.tradeStatus))}</strong></div>
       <div><span>Entry</span><strong>${escapeHtml(normalizeEntryAttempt(trade.entryAttempt))}</strong></div>
       <div><span>FVG Status</span><strong>${escapeHtml(normalizeFvgStatus(trade.fvgStatus))}</strong></div>
+      <div><span>CISD Support</span><strong>${escapeHtml(normalizeCisdStatus(trade.cisdStatus))}</strong></div>
       <div><span>HTF → LTF</span><strong>${escapeHtml(trade.htfTimeframe || '-')} → ${escapeHtml(trade.ltfTimeframe || '-')}</strong></div>
       <div><span>FVG Order</span><strong>${escapeHtml(trade.fvgOrder || '-')}</strong></div>
       <div><span>CISD</span><strong>${escapeHtml(trade.cisdType || '-')}</strong></div>
@@ -1595,7 +1615,7 @@ function exportJson() {
 
 function exportCsv() {
   const headers = [
-    'Date', 'Day', 'Trade Status', 'Entry Attempt', 'FVG Status', 'Pair', 'Direction', 'Session', 'HTF', 'Auto LTF', 'FVG Order',
+    'Date', 'Day', 'Trade Status', 'Entry Attempt', 'FVG Status', 'CISD Support', 'Pair', 'Direction', 'Session', 'HTF', 'Auto LTF', 'FVG Order',
     'CISD Type', 'FVG Location', 'HTF Mitigation / Entry Behavior Tags',
     'LTF Entry Level Tags', 'BE Logic', 'Risk', 'Result', 'RR', 'PnL',
     'HTF Chart Links', 'LTF Chart Links', 'HTF Notes', 'General Notes'
@@ -1606,6 +1626,7 @@ function exportCsv() {
     normalizeTradeStatus(trade.tradeStatus),
     normalizeEntryAttempt(trade.entryAttempt),
     normalizeFvgStatus(trade.fvgStatus),
+    normalizeCisdStatus(trade.cisdStatus),
     trade.pair,
     trade.direction,
     trade.session,
@@ -1825,6 +1846,9 @@ wireNoneOption('htfRetracementTags');
 searchInput?.addEventListener('input', renderResearch);
 directionFilter?.addEventListener('change', renderResearch);
 statusFilter?.addEventListener('change', renderResearch);
+entryAttemptFilter?.addEventListener('change', renderResearch);
+fvgStatusFilter?.addEventListener('change', renderResearch);
+cisdStatusFilter?.addEventListener('change', renderResearch);
 pairFilter?.addEventListener('change', renderResearch);
 resultFilter?.addEventListener('change', renderResearch);
 sessionFilter?.addEventListener('change', renderResearch);

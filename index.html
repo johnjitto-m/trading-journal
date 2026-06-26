@@ -191,6 +191,12 @@
               <option value="Fresh FVG">Fresh FVG</option>
               <option value="Partial FVG">Partial FVG</option>
             </select>
+            <select id="cisdStatusFilter">
+              <option value="All">All CISD Support</option>
+              <option value="NONE">NONE</option>
+              <option value="Old FVG">Old FVG</option>
+              <option value="Old CISD FVG">Old CISD FVG</option>
+            </select>
             <select id="pairFilter">
               <option value="All">All Pairs</option>
               <option value="EURUSD">EURUSD</option>
@@ -331,25 +337,6 @@
 
           <section id="basicStep" class="form-step active">
             <div class="basic-final-layout">
-              <div class="question-card compact-question trade-status-card">
-                <p class="question-number">Trade Status</p>
-                <h3>Did you take this setup?</h3>
-                <div class="choice-grid three-choice">
-                  <label class="choice-card status-choice-card">
-                    <input type="radio" name="tradeStatus" value="Took Trade" checked />
-                    <span class="choice-body"><strong>Took Trade</strong><small>Counts in P/L, win rate and RR.</small></span>
-                  </label>
-                  <label class="choice-card status-choice-card">
-                    <input type="radio" name="tradeStatus" value="Missed Trade" />
-                    <span class="choice-body"><strong>Missed Trade</strong><small>Saved for review, not counted in stats.</small></span>
-                  </label>
-                  <label class="choice-card status-choice-card">
-                    <input type="radio" name="tradeStatus" value="Not Taken" />
-                    <span class="choice-body"><strong>Not Taken</strong><small>Skipped setup, not counted in stats.</small></span>
-                  </label>
-                </div>
-              </div>
-
               <div class="basic-field-card basic-details-card">
                 <p class="question-number">Basic Details</p>
                 <div class="basic-details-grid first-row">
@@ -395,7 +382,7 @@
                   </label>
                   <div class="timeframe-pair-inline">
                     <label>
-                      HTF Timeframe
+                      HTF
                       <select id="htfTimeframe" required>
                         <option value="15m">15m</option>
                         <option value="1H">1H</option>
@@ -411,22 +398,43 @@
                 </div>
               </div>
 
-              <div class="setup-details-grid">
+              <div class="classification-grid">
+                <div class="question-card compact-question trade-status-card">
+                  <p class="question-number">Trade Status</p>
+                  <h3>Did you take this setup?</h3>
+                  <div class="choice-grid three-choice">
+                    <label class="choice-card status-choice-card">
+                      <input type="radio" name="tradeStatus" value="Took Trade" checked />
+                      <span class="choice-body"><strong>Took Trade</strong><small>Counts in P/L, win rate and RR.</small></span>
+                    </label>
+                    <label class="choice-card status-choice-card">
+                      <input type="radio" name="tradeStatus" value="Missed Trade" />
+                      <span class="choice-body"><strong>Missed Trade</strong><small>Saved for review, not counted in stats.</small></span>
+                    </label>
+                    <label class="choice-card status-choice-card">
+                      <input type="radio" name="tradeStatus" value="Not Taken" />
+                      <span class="choice-body"><strong>Not Taken</strong><small>Skipped setup, not counted in stats.</small></span>
+                    </label>
+                  </div>
+                </div>
+
                 <div class="question-card compact-question entry-attempt-card">
                   <p class="question-number">Entry Attempt</p>
                   <h3>Which entry is this?</h3>
                   <div class="choice-grid two-choice">
                     <label class="choice-card status-choice-card">
                       <input type="radio" name="entryAttempt" value="1st Entry" checked />
-                      <span class="choice-body"><strong>1st Entry</strong><small>First valid entry for this setup.</small></span>
+                      <span class="choice-body"><strong>1st Entry</strong><small>First valid entry.</small></span>
                     </label>
                     <label class="choice-card status-choice-card">
                       <input type="radio" name="entryAttempt" value="2nd Entry" />
-                      <span class="choice-body"><strong>2nd Entry</strong><small>Second valid entry for the same FVG.</small></span>
+                      <span class="choice-body"><strong>2nd Entry</strong><small>Second valid entry.</small></span>
                     </label>
                   </div>
                 </div>
+              </div>
 
+              <div class="classification-grid setup-classification-grid">
                 <div class="question-card compact-question fvg-status-card">
                   <p class="question-number">FVG Status</p>
                   <h3>Is this FVG new or partial?</h3>
@@ -438,6 +446,25 @@
                     <label class="choice-card status-choice-card">
                       <input type="radio" name="fvgStatus" value="Partial FVG" />
                       <span class="choice-body"><strong>Partial FVG</strong><small>Partially used / revisited FVG.</small></span>
+                    </label>
+                  </div>
+                </div>
+                
+                <div class="question-card compact-question cisd-status-card">
+                  <p class="question-number">CISD Status</p>
+                  <h3>Is this CISD supported by?</h3>
+                  <div class="choice-grid three-choice">
+                    <label class="choice-card status-choice-card">
+                      <input type="radio" name="cisdStatus" value="NONE" checked />
+                      <span class="choice-body"><strong>NONE</strong><small>No support from existing structures.</small></span>
+                    </label>
+                    <label class="choice-card status-choice-card">
+                      <input type="radio" name="cisdStatus" value="Old FVG" checked />
+                      <span class="choice-body"><strong>Old FVG</strong><small>Supported from old FVG / Partial FVG.</small></span>
+                    </label>
+                    <label class="choice-card status-choice-card">
+                      <input type="radio" name="cisdStatus" value="Old CISD FVG" />
+                      <span class="choice-body"><strong>Old CISD FVG</strong><small>Supported from old CISD FVG.</small></span>
                     </label>
                   </div>
                 </div>

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'john-trading-journal-v27';
+const CACHE_NAME = 'john-trading-journal-v29';
 const APP_SHELL = [
   './',
   './index.html',

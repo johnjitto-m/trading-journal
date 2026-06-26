@@ -47,3 +47,16 @@ Files added:
 - Removed empty Trade Status space by moving Date/Pair fields into the left column.
 - Moved Session/HTF/Auto LTF into a compact right-side card.
 - Fixed label spacing to avoid overlap.
+
+
+## v28
+- Reworked Step 1 layout: Basic Details first, then Trade Status + Entry Attempt, then FVG Status + CISD Status.
+- Added CISD Status field with Old FVG / Old CISD FVG.
+
+
+## v29
+- Equalized Step 1 Basic Details columns.
+- Date / Day / Pair now use 33.3% each.
+- Direction / Session / HTF+Auto LTF now use 33.3% each.
+- Trade Status / Entry Attempt and FVG Status / CISD Status now use 50/50 layout.
+- PWA cache updated to v29.
