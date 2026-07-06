@@ -81,6 +81,7 @@ const formTitle = document.querySelector('#formTitle');
 const tradeEntryModal = document.querySelector('#tradeEntryModal');
 const openTradeModalBtn = document.querySelector('#openTradeModalBtn');
 const closeTradeEntryModalBtn = document.querySelector('#closeTradeEntryModalBtn');
+const secondFvgEntryPanel = document.querySelector('#secondFvgEntryPanel');
 
 const preview = {
   htf: {
@@ -224,6 +225,7 @@ function migrateOldTrade(trade) {
     tradingViewLink: trade.tradingViewLink || firstFilledUrl(htfLinks),
     htfImageUrl: trade.htfImageUrl || '',
     fvgOrder: trade.fvgOrder || '',
+    secondFvgEntryType: trade.secondFvgEntryType || '',
     cisdType: trade.cisdType || '',
     fvgLocation: trade.fvgLocation || '',
     htfRetracementTags: [...new Set([
@@ -640,6 +642,12 @@ function setChecked(name, value) {
   document.querySelectorAll(`input[name="${name}"]`).forEach((input) => {
     input.checked = input.value === value;
   });
+}
+
+function updateSecondFvgEntryPanel() {
+  const isSecondFvg = getChecked('fvgOrder') === 'Second FVG';
+  if (secondFvgEntryPanel) secondFvgEntryPanel.hidden = !isSecondFvg;
+  if (!isSecondFvg) clearChecked('secondFvgEntryType');
 }
 
 function clearChecked(name) {
@@ -1139,7 +1147,9 @@ function renderTradeRows(list, targetBody, targetEmpty) {
     row.querySelector('.direction-cell').innerHTML = `<span class="direction-badge ${String(trade.direction || '').toLowerCase()}">${escapeHtml(trade.direction || '-')}</span>`;
     row.querySelector('.status-cell').innerHTML = `<span class="status-badge status-${getTradeStatusClass(trade)}">${escapeHtml(normalizeTradeStatus(trade.tradeStatus))}</span>`;
     row.querySelector('.entry-attempt-cell').innerHTML = `<span class="entry-badge entry-${getEntryAttemptShort(trade).toLowerCase()}">${escapeHtml(getEntryAttemptShort(trade))}</span>`;
-    row.querySelector('.setup-cell').textContent = trade.fvgOrder || '-';
+    row.querySelector('.setup-cell').textContent = trade.secondFvgEntryType
+      ? `${trade.fvgOrder || '-'} · ${trade.secondFvgEntryType}`
+      : (trade.fvgOrder || '-');
     row.querySelector('.cisd-cell').textContent = trade.cisdType || '-';
 
     const resultPill = row.querySelector('.result-pill');
@@ -1282,6 +1292,7 @@ function resetForm() {
   setChecked('cisdStatus', 'NONE');
   setChecked('tradeOutcome', 'BE');
   clearChecked('fvgOrder');
+  clearChecked('secondFvgEntryType');
   clearChecked('cisdType');
   clearChecked('fvgLocation');
   clearChecked('beLogic');
@@ -1294,6 +1305,7 @@ function resetForm() {
   renderChartLinks('ltf');
   updateChartPreview('htf');
   updateChartPreview('ltf');
+  updateSecondFvgEntryPanel();
   setStep('basic');
 }
 
@@ -1334,6 +1346,7 @@ function getFormTrade() {
     tradingViewLink: firstFilledUrl(htfLinks),
     htfImageUrl: firstFilledUrl(htfLinks),
     fvgOrder: getChecked('fvgOrder'),
+    secondFvgEntryType: getChecked('fvgOrder') === 'Second FVG' ? getChecked('secondFvgEntryType') : '',
     cisdType: getChecked('cisdType'),
     fvgLocation: getChecked('fvgLocation'),
     htfRetracementTags: getCheckedValues('htfRetracementTags'),
@@ -1419,6 +1432,7 @@ function buildTradeDetails(trade, pnl) {
         ${detailItem('FVG Status', normalizeFvgStatus(trade.fvgStatus))}
         ${detailItem('CISD Support', normalizeCisdStatus(trade.cisdStatus))}
         ${detailItem('FVG Order', trade.fvgOrder || '-')}
+        ${detailItem('Second FVG Entry', trade.secondFvgEntryType || '-')}
         ${detailItem('CISD Type', trade.cisdType || '-')}
         ${detailItem('FVG Location', trade.fvgLocation || '-')}
         ${detailItem('Mitigation / Retracement', renderTagList(trade.htfRetracementTags), true)}
@@ -1502,6 +1516,8 @@ function editTrade(id) {
   chartLinks.ltf = normalizeChartLinks(trade.ltfChartLinks, 'ltf');
   activeChartIndex = { htf: 0, ltf: 0 };
   setChecked('fvgOrder', trade.fvgOrder || '');
+  setChecked('secondFvgEntryType', trade.secondFvgEntryType || '');
+  updateSecondFvgEntryPanel();
   setChecked('cisdType', trade.cisdType || '');
   setChecked('fvgLocation', trade.fvgLocation || '');
   setChecked('beLogic', trade.beLogic || '');
@@ -1567,6 +1583,7 @@ function buildDeleteTradeSummary(trade) {
       <div><span>CISD Support</span><strong>${escapeHtml(normalizeCisdStatus(trade.cisdStatus))}</strong></div>
       <div><span>HTF → LTF</span><strong>${escapeHtml(trade.htfTimeframe || '-')} → ${escapeHtml(trade.ltfTimeframe || '-')}</strong></div>
       <div><span>FVG Order</span><strong>${escapeHtml(trade.fvgOrder || '-')}</strong></div>
+      <div><span>Second FVG Entry</span><strong>${escapeHtml(trade.secondFvgEntryType || '-')}</strong></div>
       <div><span>CISD</span><strong>${escapeHtml(trade.cisdType || '-')}</strong></div>
       <div><span>FVG Location</span><strong>${escapeHtml(trade.fvgLocation || '-')}</strong></div>
       <div><span>Result</span><strong>${escapeHtml(getDisplayResult(trade))}</strong></div>
@@ -1618,7 +1635,7 @@ function exportJson() {
 function exportCsv() {
   const headers = [
     'Date', 'Day', 'Trade Status', 'Entry Attempt', 'FVG Status', 'CISD Support', 'Pair', 'Direction', 'Session', 'HTF', 'Auto LTF', 'FVG Order',
-    'CISD Type', 'FVG Location', 'HTF Mitigation / Entry Behavior Tags',
+    'Second FVG Entry', 'CISD Type', 'FVG Location', 'HTF Mitigation / Entry Behavior Tags',
     'LTF Entry Level Tags', 'BE Logic', 'Risk', 'Result', 'RR', 'PnL',
     'HTF Chart Links', 'LTF Chart Links', 'HTF Notes', 'General Notes'
   ];
@@ -1635,6 +1652,7 @@ function exportCsv() {
     trade.htfTimeframe,
     trade.ltfTimeframe,
     trade.fvgOrder,
+    trade.secondFvgEntryType || '',
     trade.cisdType,
     trade.fvgLocation,
     (trade.htfRetracementTags || []).join(' | '),
@@ -1726,6 +1744,10 @@ function validateHtfStep() {
   const missing = requiredGroups.find((group) => !getChecked(group.name));
   if (missing) {
     alert(`Please select: ${missing.label}`);
+    return false;
+  }
+  if (getChecked('fvgOrder') === 'Second FVG' && !getChecked('secondFvgEntryType')) {
+    alert('Please select: FVG mitigation Entry or FVG sweep entry');
     return false;
   }
   if (!getCheckedValues('htfRetracementTags').length) {
@@ -1907,6 +1929,9 @@ document.querySelector('#resetFormBtn').addEventListener('click', resetForm);
 document.querySelector('#exportJsonBtn').addEventListener('click', exportJson);
 document.querySelector('#exportCsvBtn').addEventListener('click', exportCsv);
 document.querySelector('#importJsonInput').addEventListener('change', importJson);
+document.querySelectorAll('input[name="fvgOrder"]').forEach((input) => {
+  input.addEventListener('change', updateSecondFvgEntryPanel);
+});
 
 detailsModal.closeBtn?.addEventListener('click', closeTradeDetails);
 detailsModal.closeFooterBtn?.addEventListener('click', closeTradeDetails);
