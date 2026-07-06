@@ -82,6 +82,7 @@ const tradeEntryModal = document.querySelector('#tradeEntryModal');
 const openTradeModalBtn = document.querySelector('#openTradeModalBtn');
 const closeTradeEntryModalBtn = document.querySelector('#closeTradeEntryModalBtn');
 const secondFvgEntryPanel = document.querySelector('#secondFvgEntryPanel');
+const breakerBlockEntryPanel = document.querySelector('#breakerBlockEntryPanel');
 
 const preview = {
   htf: {
@@ -226,6 +227,7 @@ function migrateOldTrade(trade) {
     htfImageUrl: trade.htfImageUrl || '',
     fvgOrder: trade.fvgOrder || '',
     secondFvgEntryType: trade.secondFvgEntryType || '',
+    breakerBlockEntryLevel: trade.breakerBlockEntryLevel || '',
     cisdType: trade.cisdType || '',
     fvgLocation: trade.fvgLocation || '',
     htfRetracementTags: [...new Set([
@@ -648,6 +650,7 @@ function updateSecondFvgEntryPanel() {
   const isSecondFvg = getChecked('fvgOrder') === 'Second FVG';
   if (secondFvgEntryPanel) secondFvgEntryPanel.hidden = !isSecondFvg;
   if (!isSecondFvg) clearChecked('secondFvgEntryType');
+  syncSecondFvgMitigationEntry();
 }
 
 function clearChecked(name) {
@@ -667,10 +670,31 @@ function setCheckedValues(name, values = []) {
   });
 }
 
+function setCheckedValue(name, value, checked = true) {
+  document.querySelectorAll(`input[name="${name}"]`).forEach((input) => {
+    if (input.value === value) input.checked = checked;
+  });
+}
+
 function clearCheckedValues(name) {
   document.querySelectorAll(`input[name="${name}"]`).forEach((input) => {
     input.checked = false;
   });
+}
+
+function updateBreakerBlockEntryPanel() {
+  const isBreakerBlockEntry = getCheckedValues('ltfEntryLevelTags').includes('Breaker Block entry');
+  if (breakerBlockEntryPanel) breakerBlockEntryPanel.hidden = !isBreakerBlockEntry;
+  if (!isBreakerBlockEntry) clearChecked('breakerBlockEntryLevel');
+}
+
+function syncSecondFvgMitigationEntry() {
+  const isSecondFvgMitigation =
+    getChecked('fvgOrder') === 'Second FVG' &&
+    getChecked('secondFvgEntryType') === 'FVG mitigation Entry';
+
+  if (isSecondFvgMitigation) setCheckedValue('ltfEntryLevelTags', 'Breaker Block entry', true);
+  updateBreakerBlockEntryPanel();
 }
 
 function setExampleImages() {
@@ -928,8 +952,10 @@ function getFilteredTrades() {
         trade.htfTimeframe,
         trade.ltfTimeframe,
         trade.fvgOrder,
+        trade.secondFvgEntryType || '',
         trade.cisdType,
         trade.fvgLocation,
+        trade.breakerBlockEntryLevel || '',
         ...(trade.htfRetracementTags || []),
         ...(trade.ltfEntryLevelTags || []),
         trade.beLogic,
@@ -1032,6 +1058,7 @@ function getSimilarityItems(list, resultType) {
     { label: 'FVG location', field: 'fvgLocation' },
     { label: 'Mitigation', field: 'htfRetracementTags' },
     { label: 'Entry level', field: 'ltfEntryLevelTags' },
+    { label: 'Breaker block entry level', field: 'breakerBlockEntryLevel' },
     { label: 'BE logic', field: 'beLogic' },
     { label: 'Session', field: 'session' },
     { label: 'Pair', field: 'pair' },
@@ -1293,6 +1320,7 @@ function resetForm() {
   setChecked('tradeOutcome', 'BE');
   clearChecked('fvgOrder');
   clearChecked('secondFvgEntryType');
+  clearChecked('breakerBlockEntryLevel');
   clearChecked('cisdType');
   clearChecked('fvgLocation');
   clearChecked('beLogic');
@@ -1306,6 +1334,7 @@ function resetForm() {
   updateChartPreview('htf');
   updateChartPreview('ltf');
   updateSecondFvgEntryPanel();
+  updateBreakerBlockEntryPanel();
   setStep('basic');
 }
 
@@ -1347,6 +1376,7 @@ function getFormTrade() {
     htfImageUrl: firstFilledUrl(htfLinks),
     fvgOrder: getChecked('fvgOrder'),
     secondFvgEntryType: getChecked('fvgOrder') === 'Second FVG' ? getChecked('secondFvgEntryType') : '',
+    breakerBlockEntryLevel: getCheckedValues('ltfEntryLevelTags').includes('Breaker Block entry') ? getChecked('breakerBlockEntryLevel') : '',
     cisdType: getChecked('cisdType'),
     fvgLocation: getChecked('fvgLocation'),
     htfRetracementTags: getCheckedValues('htfRetracementTags'),
@@ -1448,6 +1478,7 @@ function buildTradeDetails(trade, pnl) {
       </div>
       <div class="details-grid">
         ${detailItem('Entry Level', renderTagList(trade.ltfEntryLevelTags), true)}
+        ${detailItem('Breaker Block Entry Level', trade.breakerBlockEntryLevel || '-')}
         ${detailItem('BE Logic', trade.beLogic || '-')}
       </div>
       ${renderDetailChartLinks('LTF Chart Links', ltfLinks)}
@@ -1523,6 +1554,9 @@ function editTrade(id) {
   setChecked('beLogic', trade.beLogic || '');
   setCheckedValues('htfRetracementTags', mergeLegacyRetracementTags(trade));
   setCheckedValues('ltfEntryLevelTags', trade.ltfEntryLevelTags || []);
+  syncSecondFvgMitigationEntry();
+  setChecked('breakerBlockEntryLevel', trade.breakerBlockEntryLevel || '');
+  updateBreakerBlockEntryPanel();
   fields.risk.value = trade.risk ?? 0;
   setChecked('tradeOutcome', trade.result === 'Win' ? 'TP' : trade.result === 'Loss' ? 'SL' : (trade.result || 'BE'));
   fields.rr.value = trade.rr ?? 0;
@@ -1635,7 +1669,7 @@ function exportJson() {
 function exportCsv() {
   const headers = [
     'Date', 'Day', 'Trade Status', 'Entry Attempt', 'FVG Status', 'CISD Support', 'Pair', 'Direction', 'Session', 'HTF', 'Auto LTF', 'FVG Order',
-    'Second FVG Entry', 'CISD Type', 'FVG Location', 'HTF Mitigation / Entry Behavior Tags',
+    'Second FVG Entry', 'CISD Type', 'FVG Location', 'Breaker Block Entry Level', 'HTF Mitigation / Entry Behavior Tags',
     'LTF Entry Level Tags', 'BE Logic', 'Risk', 'Result', 'RR', 'PnL',
     'HTF Chart Links', 'LTF Chart Links', 'HTF Notes', 'General Notes'
   ];
@@ -1655,6 +1689,7 @@ function exportCsv() {
     trade.secondFvgEntryType || '',
     trade.cisdType,
     trade.fvgLocation,
+    trade.breakerBlockEntryLevel || '',
     (trade.htfRetracementTags || []).join(' | '),
     (trade.ltfEntryLevelTags || []).join(' | '),
     trade.beLogic,
@@ -1758,6 +1793,10 @@ function validateHtfStep() {
 }
 
 function validateLtfStep() {
+  if (getCheckedValues('ltfEntryLevelTags').includes('Breaker Block entry') && !getChecked('breakerBlockEntryLevel')) {
+    alert('Please select: Breaker Block mitigation or Breaker Block 50%');
+    return false;
+  }
   return true;
 }
 
@@ -1931,6 +1970,12 @@ document.querySelector('#exportCsvBtn').addEventListener('click', exportCsv);
 document.querySelector('#importJsonInput').addEventListener('change', importJson);
 document.querySelectorAll('input[name="fvgOrder"]').forEach((input) => {
   input.addEventListener('change', updateSecondFvgEntryPanel);
+});
+document.querySelectorAll('input[name="secondFvgEntryType"]').forEach((input) => {
+  input.addEventListener('change', syncSecondFvgMitigationEntry);
+});
+document.querySelectorAll('input[name="ltfEntryLevelTags"]').forEach((input) => {
+  input.addEventListener('change', updateBreakerBlockEntryPanel);
 });
 
 detailsModal.closeBtn?.addEventListener('click', closeTradeDetails);

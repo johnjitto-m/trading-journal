@@ -264,6 +264,7 @@
               <option value="SL above 5 pips, so 50% of CISD entry">SL above 5 pips, so 50% of CISD entry</option>
               <option value="FVG is in CISD, so FVG sweep entry">FVG is in CISD, so FVG sweep entry</option>
               <option value="CISD level entry">CISD level entry</option>
+              <option value="Breaker Block entry">Breaker Block entry</option>
             </select>
             <select id="beLogicFilter">
               <option value="All">All BE Logic</option>
@@ -692,6 +693,20 @@
               <label class="tag-choice"><input type="checkbox" name="ltfEntryLevelTags" value="SL above 5 pips, so 50% of CISD entry" /><span>SL above 5 pips, so 50% of CISD entry</span></label>
               <label class="tag-choice"><input type="checkbox" name="ltfEntryLevelTags" value="FVG is in CISD, so FVG sweep entry" /><span>FVG is in CISD, so FVG sweep entry</span></label>
               <label class="tag-choice"><input type="checkbox" name="ltfEntryLevelTags" value="CISD level entry" /><span>CISD level entry</span></label>
+              <label class="tag-choice"><input type="checkbox" name="ltfEntryLevelTags" value="Breaker Block entry" /><span>Breaker Block entry</span></label>
+            </div>
+            <div id="breakerBlockEntryPanel" class="sub-question-panel" hidden>
+              <p class="question-help">Entry level at?</p>
+              <div class="choice-grid two-choice">
+                <label class="choice-card">
+                  <input type="radio" name="breakerBlockEntryLevel" value="Breaker Block mitigation" />
+                  <span class="choice-body"><strong>Breaker Block mitigation</strong></span>
+                </label>
+                <label class="choice-card">
+                  <input type="radio" name="breakerBlockEntryLevel" value="Breaker Block 50%" />
+                  <span class="choice-body"><strong>Breaker Block 50%</strong></span>
+                </label>
+              </div>
             </div>
           </div>
 
