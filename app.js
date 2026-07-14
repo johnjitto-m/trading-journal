@@ -211,8 +211,8 @@ function migrateOldTrade(trade) {
     entryAttempt: normalizeEntryAttempt(trade.entryAttempt || trade.entry || trade.attempt),
     fvgStatus: normalizeFvgStatus(trade.fvgStatus || trade.fvgFreshness || trade.fvgState),
     cisdStatus: normalizeCisdStatus(trade.cisdStatus || trade.cisdSupport || trade.cisdState),
-    htfTimeframe: trade.htfTimeframe || '1H',
-    ltfTimeframe: trade.ltfTimeframe || '5m',
+    htfTimeframe: trade.htfTimeframe || '15m',
+    ltfTimeframe: trade.ltfTimeframe || '1m',
     htfImageUploadData: trade.htfImageUploadData || '',
     ltfImageUploadData: trade.ltfImageUploadData || '',
     htfChartLinks: htfLinks,
@@ -1322,9 +1322,9 @@ function resetForm() {
   fields.pair.value = 'EURUSD';
   fields.direction.value = 'Long';
   fields.session.value = 'London';
-  fields.htfTimeframe.value = '1H';
-  fields.risk.value = 25;
-  fields.rr.value = 1;
+  fields.htfTimeframe.value = '15m';
+  fields.risk.value = 50;
+  fields.rr.value = 4;
   setChecked('tradeStatus', 'Took Trade');
   setChecked('entryAttempt', '1st Entry');
   setChecked('fvgStatus', 'Fresh FVG');
@@ -1574,7 +1574,7 @@ function editTrade(id) {
   fields.pair.value = trade.pair || 'EURUSD';
   fields.direction.value = trade.direction || 'Long';
   fields.session.value = trade.session || 'London';
-  fields.htfTimeframe.value = trade.htfTimeframe || '1H';
+  fields.htfTimeframe.value = trade.htfTimeframe || '15m';
   fields.ltfTimeframe.value = trade.ltfTimeframe || htfToLtf[fields.htfTimeframe.value];
   uploadedImages.htf = trade.htfImageUploadData || '';
   uploadedImages.ltf = trade.ltfImageUploadData || '';
