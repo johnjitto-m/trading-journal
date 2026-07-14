@@ -233,6 +233,11 @@
               <option value="First FVG">First FVG</option>
               <option value="Second FVG">Second FVG</option>
             </select>
+            <select id="fvgThirdCandleFilter">
+              <option value="All">All FVG Third Candle</option>
+              <option value="Positive candle">Positive candle</option>
+              <option value="Negative candle">Negative candle</option>
+            </select>
             <select id="cisdFilter">
               <option value="All">All CISD Types</option>
               <option value="Clean CISD">Clean CISD</option>
@@ -265,6 +270,7 @@
               <option value="FVG is in CISD, so FVG sweep entry">FVG is in CISD, so FVG sweep entry</option>
               <option value="CISD level entry">CISD level entry</option>
               <option value="Breaker Block entry">Breaker Block entry</option>
+              <option value="Entry adjust to get 4 RR">Entry adjust to get 4 RR</option>
             </select>
             <select id="beLogicFilter">
               <option value="All">All BE Logic</option>
@@ -560,6 +566,26 @@
               </div>
             </div>
           </div>
+          <div class="question-card">
+            <p class="question-number">Question 2</p>
+            <h3>FVG created third candle is?</h3>
+            <div class="choice-grid two-choice">
+              <label class="choice-card">
+                <input type="radio" name="fvgThirdCandle" value="Positive candle" required />
+                <span class="choice-body">
+                  <strong>Positive candle</strong>
+                  <small>The third candle of the FVG is bullish / positive.</small>
+                </span>
+              </label>
+              <label class="choice-card">
+                <input type="radio" name="fvgThirdCandle" value="Negative candle" required />
+                <span class="choice-body">
+                  <strong>Negative candle</strong>
+                  <small>The third candle of the FVG is bearish / negative.</small>
+                </span>
+              </label>
+            </div>
+          </div>
 
           <div class="question-card">
             <p class="question-number">Question 2</p>
@@ -694,6 +720,7 @@
               <label class="tag-choice"><input type="checkbox" name="ltfEntryLevelTags" value="FVG is in CISD, so FVG sweep entry" /><span>FVG is in CISD, so FVG sweep entry</span></label>
               <label class="tag-choice"><input type="checkbox" name="ltfEntryLevelTags" value="CISD level entry" /><span>CISD level entry</span></label>
               <label class="tag-choice"><input type="checkbox" name="ltfEntryLevelTags" value="Breaker Block entry" /><span>Breaker Block entry</span></label>
+              <label class="tag-choice"><input type="checkbox" name="ltfEntryLevelTags" value="Entry adjust to get 4 RR" /><span>Entry adjust to get 4 RR</span></label>
             </div>
             <div id="breakerBlockEntryPanel" class="sub-question-panel" hidden>
               <p class="question-help">Entry level at?</p>

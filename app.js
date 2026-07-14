@@ -54,6 +54,7 @@ const resultFilter = document.querySelector('#resultFilter');
 const sessionFilter = document.querySelector('#sessionFilter');
 const htfFilter = document.querySelector('#htfFilter');
 const fvgFilter = document.querySelector('#fvgFilter');
+const fvgThirdCandleFilter = document.querySelector('#fvgThirdCandleFilter');
 const cisdFilter = document.querySelector('#cisdFilter');
 const fvgLocationFilter = document.querySelector('#fvgLocationFilter');
 const mitigationFilter = document.querySelector('#mitigationFilter');
@@ -563,7 +564,7 @@ function normalizeTradeStatus(value) {
 function normalizeEntryAttempt(value) {
   const entry = String(value || '').trim().toLowerCase();
   if (entry === '2nd entry' || entry === 'second entry' || entry === '2' || entry === 'second') return '2nd Entry';
-  return '1st Entry';
+  return '1st Entry';fvgThirdCandleFilter
 }
 
 function normalizeFvgStatus(value) {
@@ -910,6 +911,7 @@ function getFilteredTrades() {
   const session = sessionFilter?.value || 'All';
   const htf = htfFilter?.value || 'All';
   const fvg = fvgFilter?.value || 'All';
+    const fvgThirdCandle = fvgThirdCandleFilter?.value || 'All';
   const cisd = cisdFilter?.value || 'All';
   const fvgLocation = fvgLocationFilter?.value || 'All';
   const mitigation = mitigationFilter?.value || 'All';
@@ -1227,7 +1229,7 @@ function setAppView(view) {
 
 function clearResearchFilters() {
   if (searchInput) searchInput.value = '';
-  [directionFilter, statusFilter, entryAttemptFilter, fvgStatusFilter, cisdStatusFilter, pairFilter, resultFilter, sessionFilter, htfFilter, fvgFilter, cisdFilter, fvgLocationFilter, mitigationFilter, entryLevelFilter, beLogicFilter].forEach((filter) => {
+  [directionFilter, statusFilter, entryAttemptFilter, fvgStatusFilter, cisdStatusFilter, pairFilter, resultFilter, sessionFilter, htfFilter, fvgFilter, fvgThirdCandleFilter, cisdFilter, fvgLocationFilter, mitigationFilter, entryLevelFilter, beLogicFilter].forEach((filter) => {
     if (filter) filter.value = 'All';
   });
   if (dateFromFilter) dateFromFilter.value = '';
@@ -1917,6 +1919,7 @@ resultFilter?.addEventListener('change', renderResearch);
 sessionFilter?.addEventListener('change', renderResearch);
 htfFilter?.addEventListener('change', renderResearch);
 fvgFilter?.addEventListener('change', renderResearch);
+fvgThirdCandleFilter?.addEventListener('change', renderResearch);
 cisdFilter?.addEventListener('change', renderResearch);
 fvgLocationFilter?.addEventListener('change', renderResearch);
 mitigationFilter?.addEventListener('change', renderResearch);
