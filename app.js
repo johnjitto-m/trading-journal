@@ -1774,6 +1774,7 @@ function validateBasicStep() {
 function validateHtfStep() {
   const requiredGroups = [
     { name: 'fvgOrder', label: 'First FVG or Second FVG' },
+    { name: 'secondFvgEntryType', label: 'FVG mitigation Entry or FVG sweep entry' },
     { name: 'cisdType', label: 'CISD type' },
     { name: 'fvgLocation', label: 'FVG location' },
   ];
