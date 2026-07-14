@@ -586,10 +586,30 @@ function normalizeFvgStatus(value) {
 
 function normalizeCisdStatus(value) {
   const status = String(value || '').trim().toLowerCase();
-  if (status === 'old cisd fvg' || status === "old cisd's fvg" || status === 'old cisd') return 'Old CISD FVG';
-  return 'Old FVG';
-}
 
+  if (
+    status === 'none' ||
+    status === 'no support' ||
+    status === 'not supported' ||
+    status === 'not supported by any existing structure'
+  ) {
+    return 'None';
+  }
+
+  if (
+    status === 'old cisd fvg' ||
+    status === "old cisd's fvg" ||
+    status === 'old cisd'
+  ) {
+    return 'Old CISD FVG';
+  }
+
+  if (status === 'old fvg') {
+    return 'Old FVG';
+  }
+
+  return 'None';
+}
 function getEntryAttemptShort(trade) {
   return normalizeEntryAttempt(trade?.entryAttempt || trade?.entry || trade?.attempt) === '2nd Entry' ? '2nd' : '1st';
 }
@@ -1326,7 +1346,7 @@ function resetForm() {
   setChecked('tradeStatus', 'Took Trade');
   setChecked('entryAttempt', '1st Entry');
   setChecked('fvgStatus', 'Fresh FVG');
-  setChecked('cisdStatus', 'Old FVG');
+  setChecked('cisdStatus', 'None');
   setChecked('tradeOutcome', 'BE');
   clearChecked('fvgOrder');
   clearChecked('secondFvgEntryType');
@@ -1374,7 +1394,7 @@ function getFormTrade() {
     tradeStatus: getChecked('tradeStatus') || 'Took Trade',
     entryAttempt: getChecked('entryAttempt') || '1st Entry',
     fvgStatus: getChecked('fvgStatus') || 'Fresh FVG',
-    cisdStatus: getChecked('cisdStatus') || 'Old FVG',
+    cisdStatus: getChecked('cisdStatus') || 'None',
     pair: fields.pair.value,
     direction: fields.direction.value,
     session: fields.session.value,

@@ -193,6 +193,7 @@
             </select>
             <select id="cisdStatusFilter">
               <option value="All">All CISD Support</option>
+              <option value="None">None</option>
               <option value="Old FVG">Old FVG</option>
               <option value="Old CISD FVG">Old CISD FVG</option>
             </select>
@@ -468,7 +469,11 @@
                 <div class="question-card compact-question cisd-status-card">
                   <p class="question-number">CISD Status</p>
                   <h3>Is this CISD supported by?</h3>
-                  <div class="choice-grid two-choice">
+                  <div class="choice-grid three-choice">
+                    <label class="choice-card status-choice-card">
+                      <input type="radio" name="cisdStatus" value="None" />
+                      <span class="choice-body"><strong>None</strong><small>Not supported by any existing structure.</small></span>
+                    </label>
                     <label class="choice-card status-choice-card">
                       <input type="radio" name="cisdStatus" value="Old FVG" checked />
                       <span class="choice-body"><strong>Old FVG</strong><small>Supported from old FVG.</small></span>
