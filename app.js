@@ -586,30 +586,12 @@ function normalizeFvgStatus(value) {
 
 function normalizeCisdStatus(value) {
   const status = String(value || '').trim().toLowerCase();
-
-  if (
-    status === 'none' ||
-    status === 'no support' ||
-    status === 'not supported' ||
-    status === 'not supported by any existing structure'
-  ) {
-    return 'None';
-  }
-
-  if (
-    status === 'old cisd fvg' ||
-    status === "old cisd's fvg" ||
-    status === 'old cisd'
-  ) {
-    return 'Old CISD FVG';
-  }
-
-  if (status === 'old fvg') {
-    return 'Old FVG';
-  }
-
+  if (!status || status === '-' || status === 'none' || status === 'no' || status === 'no support') return 'None';
+  if (status === 'old cisd fvg' || status === "old cisd's fvg" || status === 'old cisd') return 'Old CISD FVG';
+  if (status === 'old fvg') return 'Old FVG';
   return 'None';
 }
+
 function getEntryAttemptShort(trade) {
   return normalizeEntryAttempt(trade?.entryAttempt || trade?.entry || trade?.attempt) === '2nd Entry' ? '2nd' : '1st';
 }
@@ -1455,66 +1437,85 @@ function closeTradeDetails() {
 function buildTradeDetails(trade, pnl) {
   const htfLinks = filledLinks(normalizeChartLinks(trade.htfChartLinks, 'htf'));
   const ltfLinks = filledLinks(normalizeChartLinks(trade.ltfChartLinks, 'ltf'));
+  const fvgOrder = trade.fvgOrder || '-';
+  const secondFvgEntry = normalizeSecondFvgEntryType(trade.secondFvgEntryType);
+  const limitOrderPlacement = normalizeLimitOrderPlacement(trade.limitOrderPlacement);
+  const entryLevelTags = Array.isArray(trade.ltfEntryLevelTags) ? trade.ltfEntryLevelTags : [];
+  const htfRetracementTags = Array.isArray(trade.htfRetracementTags) ? trade.htfRetracementTags : [];
+  const tradeOutcome = getDisplayResult(trade);
+  const isSecondFvg = fvgOrder === 'Second FVG';
+  const isMitigationEntry = secondFvgEntry === 'FVG Mitigation entry';
+
   return `
     <section class="details-overview-grid">
       ${detailMetric('Status', `<span class="status-badge status-${getTradeStatusClass(trade)}">${escapeHtml(normalizeTradeStatus(trade.tradeStatus))}</span>`, true)}
       ${detailMetric('Entry Attempt', `<span class="entry-badge entry-${getEntryAttemptShort(trade).toLowerCase()}">${escapeHtml(normalizeEntryAttempt(trade.entryAttempt))}</span>`, true)}
       ${detailMetric('FVG Status', normalizeFvgStatus(trade.fvgStatus))}
       ${detailMetric('CISD Support', normalizeCisdStatus(trade.cisdStatus))}
-      ${detailMetric('Result', `<span class="result-pill result-${getResultClass(getDisplayResult(trade))}">${escapeHtml(getDisplayResult(trade))}</span>`, true)}
+      ${detailMetric('Result', `<span class="result-pill result-${getResultClass(tradeOutcome)}">${escapeHtml(tradeOutcome)}</span>`, true)}
       ${detailMetric('Risk', `$${Number(trade.risk || 0).toFixed(2)}`)}
       ${detailMetric('RR', `${Number(trade.rr || 0).toFixed(2)}R`)}
       ${detailMetric('P/L', `<span class="${pnl >= 0 ? 'pnl-positive' : 'pnl-negative'}">${money(pnl)}</span>`, true)}
     </section>
 
-    <section class="details-section">
+    <section class="details-section details-full-width">
       <div class="details-section-head">
-        <p class="section-kicker">Basic Info</p>
-        <h3>Trade Context</h3>
+        <p class="section-kicker">Complete Selected Options</p>
+        <h3>Step 1 — Basic Info</h3>
       </div>
-      <div class="details-grid">
-        ${detailItem('Date', `${formatDateDMY(trade.date)} · ${trade.day || getDayName(trade.date)}`)}
-        ${detailItem('Status', normalizeTradeStatus(trade.tradeStatus))}
-        ${detailItem('Entry Attempt', normalizeEntryAttempt(trade.entryAttempt))}
-        ${detailItem('FVG Status', normalizeFvgStatus(trade.fvgStatus))}
-        ${detailItem('CISD Support', normalizeCisdStatus(trade.cisdStatus))}
+      <div class="details-grid complete-details-grid">
+        ${detailItem('Date', formatDateDMY(trade.date))}
+        ${detailItem('Day', trade.day || getDayName(trade.date))}
         ${detailItem('Pair', trade.pair || '-')}
         ${detailItem('Direction', trade.direction || '-')}
         ${detailItem('Session', trade.session || '-')}
-        ${detailItem('HTF', trade.htfTimeframe || '-')}
-        ${detailItem('Auto LTF', trade.ltfTimeframe || '-')}
+        ${detailItem('Timeframes', `${trade.htfTimeframe || '-'} → ${trade.ltfTimeframe || '-'}`)}
+        ${detailItem('Trade Status — Did you take this setup?', normalizeTradeStatus(trade.tradeStatus))}
+        ${detailItem('Entry Attempt — Which entry is this?', normalizeEntryAttempt(trade.entryAttempt))}
+        ${detailItem('FVG Status — Is this FVG new or partial?', normalizeFvgStatus(trade.fvgStatus))}
+        ${detailItem('CISD Status — Is this CISD supported by?', normalizeCisdStatus(trade.cisdStatus))}
       </div>
     </section>
 
     <section class="details-section">
       <div class="details-section-head">
         <p class="section-kicker">HTF Analysis</p>
-        <h3>FVG POI</h3>
+        <h3>Every Selected HTF Option</h3>
       </div>
       <div class="details-grid">
-        ${detailItem('FVG Status', normalizeFvgStatus(trade.fvgStatus))}
-        ${detailItem('CISD Support', normalizeCisdStatus(trade.cisdStatus))}
-        ${detailItem('FVG Order', trade.fvgOrder || '-')}
-        ${detailItem('Second FVG Entry', normalizeSecondFvgEntryType(trade.secondFvgEntryType) || '-')}
-        ${detailItem('FVG Third Candle', trade.fvgThirdCandle || '-')}
-        ${detailItem('CISD Type', trade.cisdType || '-')}
-        ${detailItem('FVG Location', trade.fvgLocation || '-')}
-        ${detailItem('Mitigation / Retracement', renderTagList(trade.htfRetracementTags), true)}
+        ${detailItem('Q1 — Is this the first FVG or second FVG?', fvgOrder)}
+        ${detailItem('Second FVG follow-up — Which entry is it?', isSecondFvg ? (secondFvgEntry || '-') : 'Not applicable')}
+        ${detailItem('FVG created third candle is?', trade.fvgThirdCandle || '-')}
+        ${detailItem('How is the CISD?', trade.cisdType || '-')}
+        ${detailItem('Where is the FVG?', trade.fvgLocation || '-')}
+        ${detailItem('FVG mitigation / retracement / entry behavior', renderTagList(htfRetracementTags), true)}
       </div>
       ${trade.htfNotes ? `<div class="details-note"><span>HTF Notes</span><p>${escapeHtml(trade.htfNotes)}</p></div>` : ''}
-      ${renderDetailChartLinks('HTF Chart Links', htfLinks)}
     </section>
 
     <section class="details-section">
       <div class="details-section-head">
         <p class="section-kicker">LTF Analysis</p>
-        <h3>Execution</h3>
+        <h3>Every Selected LTF Option</h3>
       </div>
       <div class="details-grid">
-        ${detailItem('Entry Level', renderTagList(trade.ltfEntryLevelTags), true)}
-        ${detailItem('Limit Order', normalizeLimitOrderPlacement(trade.limitOrderPlacement) || '-')}
-        ${detailItem('BE Logic', trade.beLogic || '-')}
+        ${detailItem('Q1 — Which entry level was used?', renderTagList(entryLevelTags), true)}
+        ${detailItem('Breaker Block follow-up — Where is your limit order placed?', isMitigationEntry ? (limitOrderPlacement || '-') : 'Not applicable')}
+        ${detailItem('Q2 — What was the BE logic?', trade.beLogic || '-')}
+        ${detailItem('Q3 — Trade outcome', tradeOutcome)}
+        ${detailItem('Risk $', `$${Number(trade.risk || 0).toFixed(2)}`)}
+        ${detailItem('RR', `${Number(trade.rr || 0).toFixed(2)}R`)}
+        ${detailItem('P/L', `<span class="${pnl >= 0 ? 'pnl-positive' : 'pnl-negative'}">${money(pnl)}</span>`, true)}
       </div>
+      ${trade.notes ? `<div class="details-note"><span>LTF / Trade Notes</span><p>${escapeHtml(trade.notes)}</p></div>` : ''}
+    </section>
+
+    <section class="details-section">
+      <div class="details-section-head">
+        <p class="section-kicker">Chart References</p>
+        <h3>Saved Links</h3>
+      </div>
+      ${renderDetailChartLinks('HTF Chart Links', htfLinks)}
       ${renderDetailChartLinks('LTF Chart Links', ltfLinks)}
     </section>
   `;

@@ -247,6 +247,7 @@
               <option value="All">All CISD Types</option>
               <option value="Clean CISD">Clean CISD</option>
               <option value="Messy CISD">Messy CISD</option>
+              <option value="Irregular CISD">Irregular CISD</option>
             </select>
             <select id="fvgLocationFilter">
               <option value="All">All FVG Locations</option>
@@ -469,13 +470,13 @@
                 <div class="question-card compact-question cisd-status-card">
                   <p class="question-number">CISD Status</p>
                   <h3>Is this CISD supported by?</h3>
-                  <div class="choice-grid three-choice">
+                  <div class="choice-grid three-choice cisd-status-options">
                     <label class="choice-card status-choice-card">
-                      <input type="radio" name="cisdStatus" value="None" />
-                      <span class="choice-body"><strong>None</strong><small>Not supported by any existing structure.</small></span>
+                      <input type="radio" name="cisdStatus" value="None" checked />
+                      <span class="choice-body"><strong>None</strong><small>No old FVG support.</small></span>
                     </label>
                     <label class="choice-card status-choice-card">
-                      <input type="radio" name="cisdStatus" value="Old FVG" checked />
+                      <input type="radio" name="cisdStatus" value="Old FVG" />
                       <span class="choice-body"><strong>Old FVG</strong><small>Supported from old FVG.</small></span>
                     </label>
                     <label class="choice-card status-choice-card">
@@ -602,7 +603,7 @@
           <div class="question-card">
             <p class="question-number">Question 3</p>
             <h3>How is the CISD?</h3>
-            <div class="choice-grid two-choice">
+            <div class="choice-grid three-choice">
               <label class="choice-card image-choice">
                 <input type="radio" name="cisdType" value="Clean CISD" required />
                 <span class="choice-body">
@@ -615,6 +616,13 @@
                 <span class="choice-body">
                   <strong>Messy CISD</strong>
                   <small>Counter candles without proper pullback.</small>
+                </span>
+              </label>
+              <label class="choice-card image-choice">
+                <input type="radio" name="cisdType" value="Irregular CISD" required />
+                <span class="choice-body">
+                  <strong>Irregular CISD</strong>
+                  <small>Structure is not clean or standard.</small>
                 </span>
               </label>
             </div>

@@ -2301,3 +2301,34 @@ textarea:hover {
 .conditional-question[hidden] {
   display: none !important;
 }
+
+/* v34 complete trade detail view */
+.details-full-width {
+  grid-column: 1 / -1;
+}
+.details-body > .details-section.details-full-width .complete-details-grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+.details-section .details-note {
+  margin-top: 0.75rem;
+}
+@media (max-width: 1200px) {
+  .details-body > .details-section.details-full-width .complete-details-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@media (max-width: 700px) {
+  .details-body > .details-section.details-full-width .complete-details-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* v34 CISD status three-option alignment */
+.cisd-status-card .cisd-status-options {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+@media (max-width: 760px) {
+  .cisd-status-card .cisd-status-options {
+    grid-template-columns: 1fr;
+  }
+}
