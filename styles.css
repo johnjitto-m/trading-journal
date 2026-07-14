@@ -306,12 +306,6 @@ button:hover, .file-label:hover, .upload-box:hover, .link-button:hover { transfo
 }
 .choice-body strong { font-size: 0.92rem; }
 .choice-body small { color: var(--muted); line-height: 1.35; }
-.second-fvg-entry-panel,
-.sub-question-panel {
-  margin-top: 0.85rem;
-  padding-top: 0.85rem;
-  border-top: 1px solid var(--line);
-}
 .image-choice img {
   width: 100%;
   aspect-ratio: 16 / 9;
@@ -2300,4 +2294,10 @@ textarea:hover {
   .trade-status-card .choice-grid.three-choice {
     grid-template-columns: 1fr !important;
   }
+}
+
+
+/* v32 conditional second FVG flow */
+.conditional-question[hidden] {
+  display: none !important;
 }

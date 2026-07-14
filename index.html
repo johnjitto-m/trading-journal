@@ -193,7 +193,6 @@
             </select>
             <select id="cisdStatusFilter">
               <option value="All">All CISD Support</option>
-              <option value="NONE">NONE</option>
               <option value="Old FVG">Old FVG</option>
               <option value="Old CISD FVG">Old CISD FVG</option>
             </select>
@@ -233,6 +232,11 @@
               <option value="First FVG">First FVG</option>
               <option value="Second FVG">Second FVG</option>
             </select>
+            <select id="secondFvgEntryTypeFilter">
+              <option value="All">All Second FVG Entries</option>
+              <option value="FVG Mitigation entry">FVG Mitigation entry</option>
+              <option value="FVG Sweep entry">FVG Sweep entry</option>
+            </select>
             <select id="fvgThirdCandleFilter">
               <option value="All">All FVG Third Candle</option>
               <option value="Positive candle">Positive candle</option>
@@ -242,7 +246,6 @@
               <option value="All">All CISD Types</option>
               <option value="Clean CISD">Clean CISD</option>
               <option value="Messy CISD">Messy CISD</option>
-              <option value="Irregular CISD">Irregular CISD</option>
             </select>
             <select id="fvgLocationFilter">
               <option value="All">All FVG Locations</option>
@@ -271,6 +274,11 @@
               <option value="CISD level entry">CISD level entry</option>
               <option value="Breaker Block entry">Breaker Block entry</option>
               <option value="Entry adjust to get 4 RR">Entry adjust to get 4 RR</option>
+            </select>
+            <select id="limitOrderPlacementFilter">
+              <option value="All">All Limit Orders</option>
+              <option value="Breaker Block mitigation">Breaker Block mitigation</option>
+              <option value="Breaker Block sweep">Breaker Block sweep</option>
             </select>
             <select id="beLogicFilter">
               <option value="All">All BE Logic</option>
@@ -456,18 +464,14 @@
                     </label>
                   </div>
                 </div>
-                
+
                 <div class="question-card compact-question cisd-status-card">
                   <p class="question-number">CISD Status</p>
                   <h3>Is this CISD supported by?</h3>
-                  <div class="choice-grid three-choice">
+                  <div class="choice-grid two-choice">
                     <label class="choice-card status-choice-card">
-                      <input type="radio" name="cisdStatus" value="NONE" checked />
-                      <span class="choice-body"><strong>NONE</strong><small>No support from existing structures.</small></span>
-                    </label>
-                    <label class="choice-card status-choice-card">
-                      <input type="radio" name="cisdStatus" value="Old FVG" />
-                      <span class="choice-body"><strong>Old FVG</strong><small>Supported from old FVG / Partial FVG.</small></span>
+                      <input type="radio" name="cisdStatus" value="Old FVG" checked />
+                      <span class="choice-body"><strong>Old FVG</strong><small>Supported from old FVG.</small></span>
                     </label>
                     <label class="choice-card status-choice-card">
                       <input type="radio" name="cisdStatus" value="Old CISD FVG" />
@@ -546,26 +550,29 @@
                 </span>
               </label>
             </div>
-            <div id="secondFvgEntryPanel" class="second-fvg-entry-panel" hidden>
-              <p class="question-help">Second FVG entry type</p>
-              <div class="choice-grid two-choice">
-                <label class="choice-card">
-                  <input type="radio" name="secondFvgEntryType" value="FVG mitigation Entry" />
-                  <span class="choice-body">
-                    <strong>Mitigation</strong>
-                    <small>FVG mitigation Entry.</small>
-                  </span>
-                </label>
-                <label class="choice-card">
-                  <input type="radio" name="secondFvgEntryType" value="FVG sweep entry" />
-                  <span class="choice-body">
-                    <strong>Sweep</strong>
-                    <small>FVG sweep entry.</small>
-                  </span>
-                </label>
-              </div>
+          </div>
+
+          <div id="secondFvgEntryTypeQuestion" class="question-card conditional-question" hidden>
+            <p class="question-number">Second FVG Follow-up</p>
+            <h3>Which entry is it?</h3>
+            <div class="choice-grid two-choice">
+              <label class="choice-card">
+                <input type="radio" name="secondFvgEntryType" value="FVG Mitigation entry" />
+                <span class="choice-body">
+                  <strong>FVG Mitigation entry</strong>
+                  <small>Second FVG entry from mitigation.</small>
+                </span>
+              </label>
+              <label class="choice-card">
+                <input type="radio" name="secondFvgEntryType" value="FVG Sweep entry" />
+                <span class="choice-body">
+                  <strong>FVG Sweep entry</strong>
+                  <small>Second FVG entry after sweep.</small>
+                </span>
+              </label>
             </div>
           </div>
+
           <div class="question-card">
             <p class="question-number">Question 2</p>
             <h3>FVG created third candle is?</h3>
@@ -588,13 +595,12 @@
           </div>
 
           <div class="question-card">
-            <p class="question-number">Question 2</p>
+            <p class="question-number">Question 3</p>
             <h3>How is the CISD?</h3>
-            <div class="choice-grid three-choice">
+            <div class="choice-grid two-choice">
               <label class="choice-card image-choice">
                 <input type="radio" name="cisdType" value="Clean CISD" required />
                 <span class="choice-body">
-                  <!-- <img data-example="cleanCisd" alt="Clean CISD example" /> -->
                   <strong>Clean CISD</strong>
                   <small>Clean V-shape displacement.</small>
                 </span>
@@ -602,30 +608,20 @@
               <label class="choice-card image-choice">
                 <input type="radio" name="cisdType" value="Messy CISD" required />
                 <span class="choice-body">
-                  <!-- <img data-example="messyCisd" alt="Messy CISD example" /> -->
                   <strong>Messy CISD</strong>
                   <small>Counter candles without proper pullback.</small>
-                </span>
-              </label>
-              <label class="choice-card image-choice">
-                <input type="radio" name="cisdType" value="Irregular CISD" required />
-                <span class="choice-body">
-                  <!-- <img data-example="irregularCisd" alt="Irregular CISD example" /> -->
-                  <strong>Irregular CISD</strong>
-                  <small>Structure is not clean or standard.</small>
                 </span>
               </label>
             </div>
           </div>
 
           <div class="question-card">
-            <p class="question-number">Question 3</p>
+            <p class="question-number">Question 4</p>
             <h3>Where is the FVG?</h3>
             <div class="choice-grid two-choice">
               <label class="choice-card image-choice">
                 <input type="radio" name="fvgLocation" value="FVG inside CISD" required />
                 <span class="choice-body">
-                  <!-- <img data-example="fvgInsideCisd" alt="FVG inside CISD example" /> -->
                   <strong>FVG inside CISD</strong>
                   <small>POI is inside the CISD range.</small>
                 </span>
@@ -633,7 +629,6 @@
               <label class="choice-card image-choice">
                 <input type="radio" name="fvgLocation" value="FVG outside CISD" required />
                 <span class="choice-body">
-                  <!-- <img data-example="fvgOutsideCisd" alt="FVG outside CISD example" /> -->
                   <strong>FVG outside CISD</strong>
                   <small>POI is outside the CISD range.</small>
                 </span>
@@ -642,7 +637,7 @@
           </div>
 
           <div class="question-card">
-            <p class="question-number">Question 4</p>
+            <p class="question-number">Question 5</p>
             <h3>FVG mitigation / retracement / entry behavior</h3>
             <p class="question-help">Select all that apply. If you choose None, the other tags will turn off.</p>
             <div class="tag-grid">
@@ -722,18 +717,20 @@
               <label class="tag-choice"><input type="checkbox" name="ltfEntryLevelTags" value="Breaker Block entry" /><span>Breaker Block entry</span></label>
               <label class="tag-choice"><input type="checkbox" name="ltfEntryLevelTags" value="Entry adjust to get 4 RR" /><span>Entry adjust to get 4 RR</span></label>
             </div>
-            <div id="breakerBlockEntryPanel" class="sub-question-panel" hidden>
-              <p class="question-help">Entry level at?</p>
-              <div class="choice-grid two-choice">
-                <label class="choice-card">
-                  <input type="radio" name="breakerBlockEntryLevel" value="Breaker Block mitigation" />
-                  <span class="choice-body"><strong>Breaker Block mitigation</strong></span>
-                </label>
-                <label class="choice-card">
-                  <input type="radio" name="breakerBlockEntryLevel" value="Breaker Block 50%" />
-                  <span class="choice-body"><strong>Breaker Block 50%</strong></span>
-                </label>
-              </div>
+          </div>
+
+          <div id="limitOrderPlacementQuestion" class="question-card conditional-question" hidden>
+            <p class="question-number">Breaker Block Follow-up</p>
+            <h3>Where is your limit order placed?</h3>
+            <div class="choice-grid two-choice">
+              <label class="choice-card">
+                <input type="radio" name="limitOrderPlacement" value="Breaker Block mitigation" />
+                <span class="choice-body"><strong>Breaker Block mitigation</strong></span>
+              </label>
+              <label class="choice-card">
+                <input type="radio" name="limitOrderPlacement" value="Breaker Block sweep" />
+                <span class="choice-body"><strong>Breaker Block sweep</strong></span>
+              </label>
             </div>
           </div>
 

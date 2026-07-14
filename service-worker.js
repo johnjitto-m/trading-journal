@@ -1,4 +1,4 @@
-const CACHE_NAME = 'john-trading-journal-v29';
+const CACHE_NAME = 'john-trading-journal-v32';
 const APP_SHELL = [
   './',
   './index.html',
@@ -6,12 +6,7 @@ const APP_SHELL = [
   './app.js',
   './manifest.json',
   './assets/icons/icon-192.png',
-  './assets/icons/icon-512.png',
-  './assets/examples/clean-cisd.png',
-  './assets/examples/messy-cisd.png',
-  './assets/examples/irregular-cisd.png',
-  './assets/examples/fvg-inside-cisd.png',
-  './assets/examples/fvg-outside-cisd.png'
+  './assets/icons/icon-512.png'
 ];
 
 self.addEventListener('install', (event) => {

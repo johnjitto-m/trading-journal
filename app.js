@@ -9,16 +9,6 @@ const OLD_STORAGE_KEYS = ['john-trading-journal-v5', 'john-trading-journal-v4', 
 
 let deferredInstallPrompt = null;
 
-// Replace these files with your own reference examples when ready.
-// Keep the same file names, or update the paths here.
-const exampleImages = {
-  cleanCisd: 'assets/examples/clean-cisd.png',
-  messyCisd: 'assets/examples/messy-cisd.png',
-  irregularCisd: 'assets/examples/irregular-cisd.png',
-  fvgInsideCisd: 'assets/examples/fvg-inside-cisd.png',
-  fvgOutsideCisd: 'assets/examples/fvg-outside-cisd.png',
-};
-
 const htfToLtf = {
   '15m': '1m',
   '1H': '5m',
@@ -28,6 +18,7 @@ const htfToLtf = {
 
 const defaultChartLinks = {
   htf: [
+    { label: 'HTF before mitigation', url: '' },
     { label: 'HTF current mitigation', url: '' },
   ],
   ltf: [
@@ -54,11 +45,13 @@ const resultFilter = document.querySelector('#resultFilter');
 const sessionFilter = document.querySelector('#sessionFilter');
 const htfFilter = document.querySelector('#htfFilter');
 const fvgFilter = document.querySelector('#fvgFilter');
+const secondFvgEntryTypeFilter = document.querySelector('#secondFvgEntryTypeFilter');
 const fvgThirdCandleFilter = document.querySelector('#fvgThirdCandleFilter');
 const cisdFilter = document.querySelector('#cisdFilter');
 const fvgLocationFilter = document.querySelector('#fvgLocationFilter');
 const mitigationFilter = document.querySelector('#mitigationFilter');
 const entryLevelFilter = document.querySelector('#entryLevelFilter');
+const limitOrderPlacementFilter = document.querySelector('#limitOrderPlacementFilter');
 const beLogicFilter = document.querySelector('#beLogicFilter');
 const sortFilter = document.querySelector('#sortFilter');
 const dateFromFilter = document.querySelector('#dateFromFilter');
@@ -80,10 +73,10 @@ const htfStepBtn = document.querySelector('#htfStepBtn');
 const ltfStepBtn = document.querySelector('#ltfStepBtn');
 const formTitle = document.querySelector('#formTitle');
 const tradeEntryModal = document.querySelector('#tradeEntryModal');
+const secondFvgEntryTypeQuestion = document.querySelector('#secondFvgEntryTypeQuestion');
+const limitOrderPlacementQuestion = document.querySelector('#limitOrderPlacementQuestion');
 const openTradeModalBtn = document.querySelector('#openTradeModalBtn');
 const closeTradeEntryModalBtn = document.querySelector('#closeTradeEntryModalBtn');
-const secondFvgEntryPanel = document.querySelector('#secondFvgEntryPanel');
-const breakerBlockEntryPanel = document.querySelector('#breakerBlockEntryPanel');
 
 const preview = {
   htf: {
@@ -218,8 +211,8 @@ function migrateOldTrade(trade) {
     entryAttempt: normalizeEntryAttempt(trade.entryAttempt || trade.entry || trade.attempt),
     fvgStatus: normalizeFvgStatus(trade.fvgStatus || trade.fvgFreshness || trade.fvgState),
     cisdStatus: normalizeCisdStatus(trade.cisdStatus || trade.cisdSupport || trade.cisdState),
-    htfTimeframe: trade.htfTimeframe || '15m',
-    ltfTimeframe: trade.ltfTimeframe || '1m',
+    htfTimeframe: trade.htfTimeframe || '1H',
+    ltfTimeframe: trade.ltfTimeframe || '5m',
     htfImageUploadData: trade.htfImageUploadData || '',
     ltfImageUploadData: trade.ltfImageUploadData || '',
     htfChartLinks: htfLinks,
@@ -227,8 +220,8 @@ function migrateOldTrade(trade) {
     tradingViewLink: trade.tradingViewLink || firstFilledUrl(htfLinks),
     htfImageUrl: trade.htfImageUrl || '',
     fvgOrder: trade.fvgOrder || '',
-    secondFvgEntryType: trade.secondFvgEntryType || '',
-    breakerBlockEntryLevel: trade.breakerBlockEntryLevel || '',
+    secondFvgEntryType: normalizeSecondFvgEntryType(trade.secondFvgEntryType || trade.secondFvgEntry || trade.secondFvgType),
+    fvgThirdCandle: trade.fvgThirdCandle || trade.thirdCandle || '',
     cisdType: trade.cisdType || '',
     fvgLocation: trade.fvgLocation || '',
     htfRetracementTags: [...new Set([
@@ -237,6 +230,7 @@ function migrateOldTrade(trade) {
     ])],
     ltfEntrySetupTags: [],
     ltfEntryLevelTags: Array.isArray(trade.ltfEntryLevelTags) ? trade.ltfEntryLevelTags : [],
+    limitOrderPlacement: normalizeLimitOrderPlacement(trade.limitOrderPlacement || trade.limitOrder || trade.limitOrderType),
     beLogic: trade.beLogic || '',
     result: trade.result === 'Win' ? 'TP' : trade.result === 'Loss' ? 'SL' : (trade.result || 'BE'),
     htfNotes: trade.htfNotes || '',
@@ -564,7 +558,24 @@ function normalizeTradeStatus(value) {
 function normalizeEntryAttempt(value) {
   const entry = String(value || '').trim().toLowerCase();
   if (entry === '2nd entry' || entry === 'second entry' || entry === '2' || entry === 'second') return '2nd Entry';
-  return '1st Entry';fvgThirdCandleFilter
+  return '1st Entry';
+}
+
+// Keep this helper available for older cached code paths during cloud migration.
+window.normalizeEntryAttempt = normalizeEntryAttempt;
+
+function normalizeSecondFvgEntryType(value) {
+  const entry = String(value || '').trim().toLowerCase();
+  if (entry === 'fvg sweep entry' || entry === 'fvg sweep' || entry === 'sweep') return 'FVG Sweep entry';
+  if (entry === 'fvg mitigation entry' || entry === 'fvg mitigation' || entry === 'mitigation') return 'FVG Mitigation entry';
+  return '';
+}
+
+function normalizeLimitOrderPlacement(value) {
+  const order = String(value || '').trim().toLowerCase();
+  if (order === 'breaker block sweep' || order === 'bb sweep') return 'Breaker Block sweep';
+  if (order === 'breaker block mitigation' || order === 'bb mitigation') return 'Breaker Block mitigation';
+  return '';
 }
 
 function normalizeFvgStatus(value) {
@@ -575,10 +586,8 @@ function normalizeFvgStatus(value) {
 
 function normalizeCisdStatus(value) {
   const status = String(value || '').trim().toLowerCase();
-  if (!status || status === 'none' || status === 'null' || status === 'undefined') return 'NONE';
   if (status === 'old cisd fvg' || status === "old cisd's fvg" || status === 'old cisd') return 'Old CISD FVG';
-  if (status === 'old fvg' || status === 'old') return 'Old FVG';
-  return 'NONE';
+  return 'Old FVG';
 }
 
 function getEntryAttemptShort(trade) {
@@ -647,13 +656,6 @@ function setChecked(name, value) {
   });
 }
 
-function updateSecondFvgEntryPanel() {
-  const isSecondFvg = getChecked('fvgOrder') === 'Second FVG';
-  if (secondFvgEntryPanel) secondFvgEntryPanel.hidden = !isSecondFvg;
-  if (!isSecondFvg) clearChecked('secondFvgEntryType');
-  syncSecondFvgMitigationEntry();
-}
-
 function clearChecked(name) {
   document.querySelectorAll(`input[name="${name}"]`).forEach((input) => {
     input.checked = false;
@@ -671,39 +673,39 @@ function setCheckedValues(name, values = []) {
   });
 }
 
-function setCheckedValue(name, value, checked = true) {
-  document.querySelectorAll(`input[name="${name}"]`).forEach((input) => {
-    if (input.value === value) input.checked = checked;
-  });
-}
-
 function clearCheckedValues(name) {
   document.querySelectorAll(`input[name="${name}"]`).forEach((input) => {
     input.checked = false;
   });
 }
 
-function updateBreakerBlockEntryPanel() {
-  const isBreakerBlockEntry = getCheckedValues('ltfEntryLevelTags').includes('Breaker Block entry');
-  if (breakerBlockEntryPanel) breakerBlockEntryPanel.hidden = !isBreakerBlockEntry;
-  if (!isBreakerBlockEntry) clearChecked('breakerBlockEntryLevel');
+function ensureLtfEntryLevelTag(value) {
+  const input = document.querySelector(`input[name="ltfEntryLevelTags"][value="${CSS.escape(value)}"]`);
+  if (input) input.checked = true;
 }
 
-function syncSecondFvgMitigationEntry() {
-  const isSecondFvgMitigation =
-    getChecked('fvgOrder') === 'Second FVG' &&
-    getChecked('secondFvgEntryType') === 'FVG mitigation Entry';
+function updateSecondFvgFlow() {
+  const isSecondFvg = getChecked('fvgOrder') === 'Second FVG';
+  if (secondFvgEntryTypeQuestion) secondFvgEntryTypeQuestion.hidden = !isSecondFvg;
 
-  if (isSecondFvgMitigation) setCheckedValue('ltfEntryLevelTags', 'Breaker Block entry', true);
-  updateBreakerBlockEntryPanel();
+  if (!isSecondFvg) {
+    clearChecked('secondFvgEntryType');
+    clearChecked('limitOrderPlacement');
+    if (limitOrderPlacementQuestion) limitOrderPlacementQuestion.hidden = true;
+    return;
+  }
+
+  const isMitigationEntry = getChecked('secondFvgEntryType') === 'FVG Mitigation entry';
+  if (limitOrderPlacementQuestion) limitOrderPlacementQuestion.hidden = !isMitigationEntry;
+
+  if (isMitigationEntry) {
+    ensureLtfEntryLevelTag('Breaker Block entry');
+  } else {
+    clearChecked('limitOrderPlacement');
+  }
 }
 
-function setExampleImages() {
-  document.querySelectorAll('[data-example]').forEach((img) => {
-    const key = img.dataset.example;
-    img.src = exampleImages[key];
-  });
-}
+function setExampleImages() {}
 
 function isLikelyImageUrl(url) {
   return /\.(png|jpe?g|webp|gif|svg)(\?.*)?$/i.test(url || '');
@@ -911,11 +913,13 @@ function getFilteredTrades() {
   const session = sessionFilter?.value || 'All';
   const htf = htfFilter?.value || 'All';
   const fvg = fvgFilter?.value || 'All';
-    const fvgThirdCandle = fvgThirdCandleFilter?.value || 'All';
+  const secondFvgEntryType = secondFvgEntryTypeFilter?.value || 'All';
+  const fvgThirdCandle = fvgThirdCandleFilter?.value || 'All';
   const cisd = cisdFilter?.value || 'All';
   const fvgLocation = fvgLocationFilter?.value || 'All';
   const mitigation = mitigationFilter?.value || 'All';
   const entryLevel = entryLevelFilter?.value || 'All';
+  const limitOrderPlacement = limitOrderPlacementFilter?.value || 'All';
   const beLogic = beLogicFilter?.value || 'All';
   const dateFrom = dateFromFilter?.value || '';
   const dateTo = dateToFilter?.value || '';
@@ -931,10 +935,13 @@ function getFilteredTrades() {
     .filter((trade) => (session === 'All' ? true : trade.session === session))
     .filter((trade) => (htf === 'All' ? true : trade.htfTimeframe === htf))
     .filter((trade) => (fvg === 'All' ? true : trade.fvgOrder === fvg))
+    .filter((trade) => (secondFvgEntryType === 'All' ? true : normalizeSecondFvgEntryType(trade.secondFvgEntryType) === secondFvgEntryType))
+    .filter((trade) => (fvgThirdCandle === 'All' ? true : trade.fvgThirdCandle === fvgThirdCandle))
     .filter((trade) => (cisd === 'All' ? true : trade.cisdType === cisd))
     .filter((trade) => (fvgLocation === 'All' ? true : trade.fvgLocation === fvgLocation))
     .filter((trade) => (mitigation === 'All' ? true : (trade.htfRetracementTags || []).includes(mitigation)))
     .filter((trade) => (entryLevel === 'All' ? true : (trade.ltfEntryLevelTags || []).includes(entryLevel)))
+    .filter((trade) => (limitOrderPlacement === 'All' ? true : normalizeLimitOrderPlacement(trade.limitOrderPlacement) === limitOrderPlacement))
     .filter((trade) => (beLogic === 'All' ? true : (trade.beLogic || 'None') === beLogic))
     .filter((trade) => (dateFrom ? trade.date >= dateFrom : true))
     .filter((trade) => (dateTo ? trade.date <= dateTo : true))
@@ -954,12 +961,13 @@ function getFilteredTrades() {
         trade.htfTimeframe,
         trade.ltfTimeframe,
         trade.fvgOrder,
-        trade.secondFvgEntryType || '',
+        normalizeSecondFvgEntryType(trade.secondFvgEntryType),
+        trade.fvgThirdCandle,
         trade.cisdType,
         trade.fvgLocation,
-        trade.breakerBlockEntryLevel || '',
         ...(trade.htfRetracementTags || []),
         ...(trade.ltfEntryLevelTags || []),
+        normalizeLimitOrderPlacement(trade.limitOrderPlacement),
         trade.beLogic,
         getDisplayResult(trade),
         trade.result,
@@ -1054,13 +1062,15 @@ function getSimilarityItems(list, resultType) {
 
   const fieldsToCheck = [
     { label: 'FVG order', field: 'fvgOrder' },
+    { label: 'Second FVG entry', field: 'secondFvgEntryType' },
+    { label: 'FVG third candle', field: 'fvgThirdCandle' },
     { label: 'FVG status', field: 'fvgStatus' },
     { label: 'CISD support', field: 'cisdStatus' },
     { label: 'CISD type', field: 'cisdType' },
     { label: 'FVG location', field: 'fvgLocation' },
     { label: 'Mitigation', field: 'htfRetracementTags' },
     { label: 'Entry level', field: 'ltfEntryLevelTags' },
-    { label: 'Breaker block entry level', field: 'breakerBlockEntryLevel' },
+    { label: 'Limit order', field: 'limitOrderPlacement' },
     { label: 'BE logic', field: 'beLogic' },
     { label: 'Session', field: 'session' },
     { label: 'Pair', field: 'pair' },
@@ -1176,9 +1186,7 @@ function renderTradeRows(list, targetBody, targetEmpty) {
     row.querySelector('.direction-cell').innerHTML = `<span class="direction-badge ${String(trade.direction || '').toLowerCase()}">${escapeHtml(trade.direction || '-')}</span>`;
     row.querySelector('.status-cell').innerHTML = `<span class="status-badge status-${getTradeStatusClass(trade)}">${escapeHtml(normalizeTradeStatus(trade.tradeStatus))}</span>`;
     row.querySelector('.entry-attempt-cell').innerHTML = `<span class="entry-badge entry-${getEntryAttemptShort(trade).toLowerCase()}">${escapeHtml(getEntryAttemptShort(trade))}</span>`;
-    row.querySelector('.setup-cell').textContent = trade.secondFvgEntryType
-      ? `${trade.fvgOrder || '-'} · ${trade.secondFvgEntryType}`
-      : (trade.fvgOrder || '-');
+    row.querySelector('.setup-cell').textContent = trade.fvgOrder || '-';
     row.querySelector('.cisd-cell').textContent = trade.cisdType || '-';
 
     const resultPill = row.querySelector('.result-pill');
@@ -1229,7 +1237,7 @@ function setAppView(view) {
 
 function clearResearchFilters() {
   if (searchInput) searchInput.value = '';
-  [directionFilter, statusFilter, entryAttemptFilter, fvgStatusFilter, cisdStatusFilter, pairFilter, resultFilter, sessionFilter, htfFilter, fvgFilter, fvgThirdCandleFilter, cisdFilter, fvgLocationFilter, mitigationFilter, entryLevelFilter, beLogicFilter].forEach((filter) => {
+  [directionFilter, statusFilter, entryAttemptFilter, fvgStatusFilter, cisdStatusFilter, pairFilter, resultFilter, sessionFilter, htfFilter, fvgFilter, secondFvgEntryTypeFilter, fvgThirdCandleFilter, cisdFilter, fvgLocationFilter, mitigationFilter, entryLevelFilter, limitOrderPlacementFilter, beLogicFilter].forEach((filter) => {
     if (filter) filter.value = 'All';
   });
   if (dateFromFilter) dateFromFilter.value = '';
@@ -1312,17 +1320,18 @@ function resetForm() {
   fields.pair.value = 'EURUSD';
   fields.direction.value = 'Long';
   fields.session.value = 'London';
-  fields.htfTimeframe.value = '15m';
-  fields.risk.value = 50;
-  fields.rr.value = 5;
+  fields.htfTimeframe.value = '1H';
+  fields.risk.value = 25;
+  fields.rr.value = 1;
   setChecked('tradeStatus', 'Took Trade');
   setChecked('entryAttempt', '1st Entry');
   setChecked('fvgStatus', 'Fresh FVG');
-  setChecked('cisdStatus', 'NONE');
+  setChecked('cisdStatus', 'Old FVG');
   setChecked('tradeOutcome', 'BE');
   clearChecked('fvgOrder');
   clearChecked('secondFvgEntryType');
-  clearChecked('breakerBlockEntryLevel');
+  clearChecked('limitOrderPlacement');
+  clearChecked('fvgThirdCandle');
   clearChecked('cisdType');
   clearChecked('fvgLocation');
   clearChecked('beLogic');
@@ -1331,12 +1340,11 @@ function resetForm() {
   clearCheckedValues('htfRetracementTags');
   clearCheckedValues('ltfEntryLevelTags');
   updateDayAndLtf();
+  updateSecondFvgFlow();
   renderChartLinks('htf');
   renderChartLinks('ltf');
   updateChartPreview('htf');
   updateChartPreview('ltf');
-  updateSecondFvgEntryPanel();
-  updateBreakerBlockEntryPanel();
   setStep('basic');
 }
 
@@ -1356,6 +1364,8 @@ function getFormTrade() {
     ? trades.find((trade) => trade.id === fields.tradeId.value)
     : null;
   const nowIso = new Date().toISOString();
+  const secondFvgEntryType = getChecked('fvgOrder') === 'Second FVG' ? getChecked('secondFvgEntryType') : '';
+  const limitOrderPlacement = secondFvgEntryType === 'FVG Mitigation entry' ? getChecked('limitOrderPlacement') : '';
 
   return {
     id: fields.tradeId.value || crypto.randomUUID(),
@@ -1364,7 +1374,7 @@ function getFormTrade() {
     tradeStatus: getChecked('tradeStatus') || 'Took Trade',
     entryAttempt: getChecked('entryAttempt') || '1st Entry',
     fvgStatus: getChecked('fvgStatus') || 'Fresh FVG',
-    cisdStatus: getChecked('cisdStatus') || 'NONE',
+    cisdStatus: getChecked('cisdStatus') || 'Old FVG',
     pair: fields.pair.value,
     direction: fields.direction.value,
     session: fields.session.value,
@@ -1377,13 +1387,14 @@ function getFormTrade() {
     tradingViewLink: firstFilledUrl(htfLinks),
     htfImageUrl: firstFilledUrl(htfLinks),
     fvgOrder: getChecked('fvgOrder'),
-    secondFvgEntryType: getChecked('fvgOrder') === 'Second FVG' ? getChecked('secondFvgEntryType') : '',
-    breakerBlockEntryLevel: getCheckedValues('ltfEntryLevelTags').includes('Breaker Block entry') ? getChecked('breakerBlockEntryLevel') : '',
+    secondFvgEntryType,
+    fvgThirdCandle: getChecked('fvgThirdCandle'),
     cisdType: getChecked('cisdType'),
     fvgLocation: getChecked('fvgLocation'),
     htfRetracementTags: getCheckedValues('htfRetracementTags'),
     ltfEntrySetupTags: [],
     ltfEntryLevelTags: getCheckedValues('ltfEntryLevelTags'),
+    limitOrderPlacement,
     beLogic: getChecked('beLogic'),
     risk: Number(fields.risk.value),
     result: getChecked('tradeOutcome') || 'BE',
@@ -1464,7 +1475,8 @@ function buildTradeDetails(trade, pnl) {
         ${detailItem('FVG Status', normalizeFvgStatus(trade.fvgStatus))}
         ${detailItem('CISD Support', normalizeCisdStatus(trade.cisdStatus))}
         ${detailItem('FVG Order', trade.fvgOrder || '-')}
-        ${detailItem('Second FVG Entry', trade.secondFvgEntryType || '-')}
+        ${detailItem('Second FVG Entry', normalizeSecondFvgEntryType(trade.secondFvgEntryType) || '-')}
+        ${detailItem('FVG Third Candle', trade.fvgThirdCandle || '-')}
         ${detailItem('CISD Type', trade.cisdType || '-')}
         ${detailItem('FVG Location', trade.fvgLocation || '-')}
         ${detailItem('Mitigation / Retracement', renderTagList(trade.htfRetracementTags), true)}
@@ -1480,7 +1492,7 @@ function buildTradeDetails(trade, pnl) {
       </div>
       <div class="details-grid">
         ${detailItem('Entry Level', renderTagList(trade.ltfEntryLevelTags), true)}
-        ${detailItem('Breaker Block Entry Level', trade.breakerBlockEntryLevel || '-')}
+        ${detailItem('Limit Order', normalizeLimitOrderPlacement(trade.limitOrderPlacement) || '-')}
         ${detailItem('BE Logic', trade.beLogic || '-')}
       </div>
       ${renderDetailChartLinks('LTF Chart Links', ltfLinks)}
@@ -1549,16 +1561,16 @@ function editTrade(id) {
   chartLinks.ltf = normalizeChartLinks(trade.ltfChartLinks, 'ltf');
   activeChartIndex = { htf: 0, ltf: 0 };
   setChecked('fvgOrder', trade.fvgOrder || '');
-  setChecked('secondFvgEntryType', trade.secondFvgEntryType || '');
-  updateSecondFvgEntryPanel();
+  setChecked('secondFvgEntryType', normalizeSecondFvgEntryType(trade.secondFvgEntryType));
+  setChecked('limitOrderPlacement', normalizeLimitOrderPlacement(trade.limitOrderPlacement));
+  updateSecondFvgFlow();
+  setChecked('fvgThirdCandle', trade.fvgThirdCandle || '');
   setChecked('cisdType', trade.cisdType || '');
   setChecked('fvgLocation', trade.fvgLocation || '');
   setChecked('beLogic', trade.beLogic || '');
   setCheckedValues('htfRetracementTags', mergeLegacyRetracementTags(trade));
   setCheckedValues('ltfEntryLevelTags', trade.ltfEntryLevelTags || []);
-  syncSecondFvgMitigationEntry();
-  setChecked('breakerBlockEntryLevel', trade.breakerBlockEntryLevel || '');
-  updateBreakerBlockEntryPanel();
+  updateSecondFvgFlow();
   fields.risk.value = trade.risk ?? 0;
   setChecked('tradeOutcome', trade.result === 'Win' ? 'TP' : trade.result === 'Loss' ? 'SL' : (trade.result || 'BE'));
   fields.rr.value = trade.rr ?? 0;
@@ -1566,6 +1578,7 @@ function editTrade(id) {
   fields.notes.value = trade.notes || '';
 
   updateDayAndLtf();
+  updateSecondFvgFlow();
   renderChartLinks('htf');
   renderChartLinks('ltf');
   updateChartPreview('htf');
@@ -1619,7 +1632,9 @@ function buildDeleteTradeSummary(trade) {
       <div><span>CISD Support</span><strong>${escapeHtml(normalizeCisdStatus(trade.cisdStatus))}</strong></div>
       <div><span>HTF → LTF</span><strong>${escapeHtml(trade.htfTimeframe || '-')} → ${escapeHtml(trade.ltfTimeframe || '-')}</strong></div>
       <div><span>FVG Order</span><strong>${escapeHtml(trade.fvgOrder || '-')}</strong></div>
-      <div><span>Second FVG Entry</span><strong>${escapeHtml(trade.secondFvgEntryType || '-')}</strong></div>
+      <div><span>Second FVG Entry</span><strong>${escapeHtml(normalizeSecondFvgEntryType(trade.secondFvgEntryType) || '-')}</strong></div>
+      <div><span>Third Candle</span><strong>${escapeHtml(trade.fvgThirdCandle || '-')}</strong></div>
+      <div><span>Limit Order</span><strong>${escapeHtml(normalizeLimitOrderPlacement(trade.limitOrderPlacement) || '-')}</strong></div>
       <div><span>CISD</span><strong>${escapeHtml(trade.cisdType || '-')}</strong></div>
       <div><span>FVG Location</span><strong>${escapeHtml(trade.fvgLocation || '-')}</strong></div>
       <div><span>Result</span><strong>${escapeHtml(getDisplayResult(trade))}</strong></div>
@@ -1670,9 +1685,9 @@ function exportJson() {
 
 function exportCsv() {
   const headers = [
-    'Date', 'Day', 'Trade Status', 'Entry Attempt', 'FVG Status', 'CISD Support', 'Pair', 'Direction', 'Session', 'HTF', 'Auto LTF', 'FVG Order',
-    'Second FVG Entry', 'CISD Type', 'FVG Location', 'Breaker Block Entry Level', 'HTF Mitigation / Entry Behavior Tags',
-    'LTF Entry Level Tags', 'BE Logic', 'Risk', 'Result', 'RR', 'PnL',
+    'Date', 'Day', 'Trade Status', 'Entry Attempt', 'FVG Status', 'CISD Support', 'Pair', 'Direction', 'Session', 'HTF', 'Auto LTF', 'FVG Order', 'Second FVG Entry', 'FVG Third Candle',
+    'CISD Type', 'FVG Location', 'HTF Mitigation / Entry Behavior Tags',
+    'LTF Entry Level Tags', 'Limit Order Placement', 'BE Logic', 'Risk', 'Result', 'RR', 'PnL',
     'HTF Chart Links', 'LTF Chart Links', 'HTF Notes', 'General Notes'
   ];
   const rows = trades.map((trade) => [
@@ -1688,12 +1703,13 @@ function exportCsv() {
     trade.htfTimeframe,
     trade.ltfTimeframe,
     trade.fvgOrder,
-    trade.secondFvgEntryType || '',
+    normalizeSecondFvgEntryType(trade.secondFvgEntryType),
+    trade.fvgThirdCandle,
     trade.cisdType,
     trade.fvgLocation,
-    trade.breakerBlockEntryLevel || '',
     (trade.htfRetracementTags || []).join(' | '),
     (trade.ltfEntryLevelTags || []).join(' | '),
+    normalizeLimitOrderPlacement(trade.limitOrderPlacement),
     trade.beLogic,
     trade.risk,
     trade.result,
@@ -1774,7 +1790,7 @@ function validateBasicStep() {
 function validateHtfStep() {
   const requiredGroups = [
     { name: 'fvgOrder', label: 'First FVG or Second FVG' },
-    { name: 'secondFvgEntryType', label: 'FVG mitigation Entry or FVG sweep entry' },
+    { name: 'fvgThirdCandle', label: 'FVG created third candle' },
     { name: 'cisdType', label: 'CISD type' },
     { name: 'fvgLocation', label: 'FVG location' },
   ];
@@ -1785,7 +1801,7 @@ function validateHtfStep() {
     return false;
   }
   if (getChecked('fvgOrder') === 'Second FVG' && !getChecked('secondFvgEntryType')) {
-    alert('Please select: FVG mitigation Entry or FVG sweep entry');
+    alert('Please select: Which entry is it?');
     return false;
   }
   if (!getCheckedValues('htfRetracementTags').length) {
@@ -1796,9 +1812,12 @@ function validateHtfStep() {
 }
 
 function validateLtfStep() {
-  if (getCheckedValues('ltfEntryLevelTags').includes('Breaker Block entry') && !getChecked('breakerBlockEntryLevel')) {
-    alert('Please select: Breaker Block mitigation or Breaker Block 50%');
-    return false;
+  if (getChecked('secondFvgEntryType') === 'FVG Mitigation entry') {
+    ensureLtfEntryLevelTag('Breaker Block entry');
+    if (!getChecked('limitOrderPlacement')) {
+      alert('Please select: Where is your limit order placed?');
+      return false;
+    }
   }
   return true;
 }
@@ -1908,6 +1927,8 @@ document.querySelector('#saveTradeBtn').addEventListener('click', saveTradeFromM
 document.querySelector('#addHtfChartLinkBtn').addEventListener('click', () => addChartLink('htf'));
 document.querySelector('#addLtfChartLinkBtn').addEventListener('click', () => addChartLink('ltf'));
 wireNoneOption('htfRetracementTags');
+document.querySelectorAll('input[name="fvgOrder"]').forEach((input) => input.addEventListener('change', updateSecondFvgFlow));
+document.querySelectorAll('input[name="secondFvgEntryType"]').forEach((input) => input.addEventListener('change', updateSecondFvgFlow));
 
 searchInput?.addEventListener('input', renderResearch);
 directionFilter?.addEventListener('change', renderResearch);
@@ -1920,6 +1941,7 @@ resultFilter?.addEventListener('change', renderResearch);
 sessionFilter?.addEventListener('change', renderResearch);
 htfFilter?.addEventListener('change', renderResearch);
 fvgFilter?.addEventListener('change', renderResearch);
+secondFvgEntryTypeFilter?.addEventListener('change', renderResearch);
 fvgThirdCandleFilter?.addEventListener('change', renderResearch);
 cisdFilter?.addEventListener('change', renderResearch);
 fvgLocationFilter?.addEventListener('change', renderResearch);
@@ -1961,6 +1983,7 @@ function setupPwaInstallPrompt() {
 }
 
 entryLevelFilter?.addEventListener('change', renderResearch);
+limitOrderPlacementFilter?.addEventListener('change', renderResearch);
 beLogicFilter?.addEventListener('change', renderResearch);
 sortFilter?.addEventListener('change', renderResearch);
 dateFromFilter?.addEventListener('change', renderResearch);
@@ -1972,15 +1995,6 @@ document.querySelector('#resetFormBtn').addEventListener('click', resetForm);
 document.querySelector('#exportJsonBtn').addEventListener('click', exportJson);
 document.querySelector('#exportCsvBtn').addEventListener('click', exportCsv);
 document.querySelector('#importJsonInput').addEventListener('change', importJson);
-document.querySelectorAll('input[name="fvgOrder"]').forEach((input) => {
-  input.addEventListener('change', updateSecondFvgEntryPanel);
-});
-document.querySelectorAll('input[name="secondFvgEntryType"]').forEach((input) => {
-  input.addEventListener('change', syncSecondFvgMitigationEntry);
-});
-document.querySelectorAll('input[name="ltfEntryLevelTags"]').forEach((input) => {
-  input.addEventListener('change', updateBreakerBlockEntryPanel);
-});
 
 detailsModal.closeBtn?.addEventListener('click', closeTradeDetails);
 detailsModal.closeFooterBtn?.addEventListener('click', closeTradeDetails);

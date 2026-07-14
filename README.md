@@ -54,9 +54,21 @@ Files added:
 - Added CISD Status field with Old FVG / Old CISD FVG.
 
 
-## v29
+## v30
 - Equalized Step 1 Basic Details columns.
 - Date / Day / Pair now use 33.3% each.
 - Direction / Session / HTF+Auto LTF now use 33.3% each.
 - Trade Status / Entry Attempt and FVG Status / CISD Status now use 50/50 layout.
-- PWA cache updated to v29.
+- PWA cache updated to v30.
+
+
+## v31 hotfix
+- Fixed cloud load error for Entry Attempt migration helper.
+
+
+## v32 update
+- Adds conditional Second FVG follow-up: FVG Mitigation entry / FVG Sweep entry.
+- FVG Mitigation entry auto-selects Breaker Block entry in LTF.
+- Adds conditional LTF question: Where is your limit order placed? Breaker Block mitigation / Breaker Block sweep.
+- Adds these fields to save/edit/view/delete/CSV/research filters.
+- PWA cache updated to v32.
