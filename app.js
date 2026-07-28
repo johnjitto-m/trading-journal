@@ -7,6 +7,20 @@ const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_KbjXNsBhWb0ZCDDR-74-KA_NjtwhVM6
 const STORAGE_KEY = 'john-trading-journal-v6-supabase';
 const OLD_STORAGE_KEYS = ['john-trading-journal-v5', 'john-trading-journal-v4', 'john-trading-journal-v3', 'john-trading-journal-v2', 'john-trading-journal-v1'];
 
+const ENTRY_LEVEL_OPTIONS_KEY = 'john-trading-journal-entry-level-options-v1';
+
+const defaultEntryLevelOptions = [
+  'SL above 5 pips, so 50% of CISD entry',
+  'Spartan CISD entry',
+  'FVG is in CISD, so FVG sweep entry',
+  'FVG is in CISD, so FVG 50% Entry',
+  'CISD level entry',
+  'Breaker Block entry',
+  'Entry adjust to get 4 RR',
+];
+
+let entryLevelOptionState = loadEntryLevelOptionState();
+
 let deferredInstallPrompt = null;
 
 const htfToLtf = {
@@ -51,6 +65,9 @@ const cisdFilter = document.querySelector('#cisdFilter');
 const fvgLocationFilter = document.querySelector('#fvgLocationFilter');
 const mitigationFilter = document.querySelector('#mitigationFilter');
 const entryLevelFilter = document.querySelector('#entryLevelFilter');
+const entryLevelOptionsGrid = document.querySelector('#entryLevelOptionsGrid');
+const addEntryLevelOptionBtn = document.querySelector('#addEntryLevelOptionBtn');
+const deleteEntryLevelOptionBtn = document.querySelector('#deleteEntryLevelOptionBtn');
 const limitOrderPlacementFilter = document.querySelector('#limitOrderPlacementFilter');
 const beLogicFilter = document.querySelector('#beLogicFilter');
 const sortFilter = document.querySelector('#sortFilter');
@@ -74,6 +91,9 @@ const ltfStepBtn = document.querySelector('#ltfStepBtn');
 const formTitle = document.querySelector('#formTitle');
 const tradeEntryModal = document.querySelector('#tradeEntryModal');
 const secondFvgEntryTypeQuestion = document.querySelector('#secondFvgEntryTypeQuestion');
+const strategyRuleCard = document.querySelector('#strategyRuleCard');
+const strategyRuleTitle = document.querySelector('#strategyRuleTitle');
+const strategyRuleText = document.querySelector('#strategyRuleText');
 const limitOrderPlacementQuestion = document.querySelector('#limitOrderPlacementQuestion');
 const openTradeModalBtn = document.querySelector('#openTradeModalBtn');
 const closeTradeEntryModalBtn = document.querySelector('#closeTradeEntryModalBtn');
@@ -211,8 +231,8 @@ function migrateOldTrade(trade) {
     entryAttempt: normalizeEntryAttempt(trade.entryAttempt || trade.entry || trade.attempt),
     fvgStatus: normalizeFvgStatus(trade.fvgStatus || trade.fvgFreshness || trade.fvgState),
     cisdStatus: normalizeCisdStatus(trade.cisdStatus || trade.cisdSupport || trade.cisdState),
-    htfTimeframe: trade.htfTimeframe || '15m',
-    ltfTimeframe: trade.ltfTimeframe || '1m',
+    htfTimeframe: trade.htfTimeframe || '1H',
+    ltfTimeframe: trade.ltfTimeframe || '5m',
     htfImageUploadData: trade.htfImageUploadData || '',
     ltfImageUploadData: trade.ltfImageUploadData || '',
     htfChartLinks: htfLinks,
@@ -643,6 +663,98 @@ function setStep(step) {
   if (states.ltf) formTitle.textContent = 'Step 3 — LTF Analysis';
 }
 
+
+function loadEntryLevelOptionState() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(ENTRY_LEVEL_OPTIONS_KEY) || '{}');
+    return {
+      custom: Array.isArray(parsed.custom) ? parsed.custom.filter(Boolean) : [],
+      deleted: Array.isArray(parsed.deleted) ? parsed.deleted.filter(Boolean) : [],
+    };
+  } catch (error) {
+    return { custom: [], deleted: [] };
+  }
+}
+
+function saveEntryLevelOptionState() {
+  localStorage.setItem(ENTRY_LEVEL_OPTIONS_KEY, JSON.stringify(entryLevelOptionState));
+}
+
+function normalizeEntryLevelOption(value = '') {
+  return String(value).trim().replace(/\s+/g, ' ');
+}
+
+function getEntryLevelOptions(extraValues = []) {
+  const deleted = new Set(entryLevelOptionState.deleted || []);
+  const combined = [
+    ...defaultEntryLevelOptions,
+    ...(entryLevelOptionState.custom || []),
+    ...(extraValues || []),
+  ]
+    .map(normalizeEntryLevelOption)
+    .filter(Boolean)
+    .filter((value) => !deleted.has(value));
+
+  return [...new Set(combined)];
+}
+
+function renderEntryLevelOptions(selectedValues = getCheckedValues('ltfEntryLevelTags')) {
+  const selected = new Set(selectedValues || []);
+  const options = getEntryLevelOptions([...selected]);
+
+  if (entryLevelOptionsGrid) {
+    entryLevelOptionsGrid.innerHTML = options.map((option) => `
+      <label class="tag-choice">
+        <input type="checkbox" name="ltfEntryLevelTags" value="${escapeAttribute(option)}" ${selected.has(option) ? 'checked' : ''} />
+        <span>${escapeHtml(option)}</span>
+      </label>
+    `).join('');
+  }
+
+  if (entryLevelFilter) {
+    const currentValue = entryLevelFilter.value || 'All';
+    entryLevelFilter.innerHTML = [
+      '<option value="All">All Entry Levels</option>',
+      ...options.map((option) => `<option value="${escapeAttribute(option)}">${escapeHtml(option)}</option>`),
+    ].join('');
+    entryLevelFilter.value = options.includes(currentValue) ? currentValue : 'All';
+  }
+}
+
+function addEntryLevelOption() {
+  const value = normalizeEntryLevelOption(window.prompt('Add new entry level option:') || '');
+  if (!value) return;
+
+  const allOptions = new Set(getEntryLevelOptions());
+  if (!allOptions.has(value)) {
+    entryLevelOptionState.custom = [...new Set([...(entryLevelOptionState.custom || []), value])];
+  }
+
+  entryLevelOptionState.deleted = (entryLevelOptionState.deleted || []).filter((item) => item !== value);
+  saveEntryLevelOptionState();
+  renderEntryLevelOptions([...getCheckedValues('ltfEntryLevelTags'), value]);
+  ensureLtfEntryLevelTag(value);
+  renderResearch();
+}
+
+function deleteSelectedEntryLevelOptions() {
+  const selected = getCheckedValues('ltfEntryLevelTags');
+  if (!selected.length) {
+    alert('Select the entry-level option you want to delete first.');
+    return;
+  }
+
+  const message = `Delete selected entry-level option${selected.length > 1 ? 's' : ''}?\n\n${selected.join('\n')}`;
+  if (!window.confirm(message)) return;
+
+  const selectedSet = new Set(selected);
+  entryLevelOptionState.custom = (entryLevelOptionState.custom || []).filter((item) => !selectedSet.has(item));
+  entryLevelOptionState.deleted = [...new Set([...(entryLevelOptionState.deleted || []), ...selected])];
+  saveEntryLevelOptionState();
+  renderEntryLevelOptions([]);
+  renderResearch();
+}
+
 function updateDayAndLtf() {
   fields.day.value = getDayName(fields.date.value);
   fields.ltfTimeframe.value = htfToLtf[fields.htfTimeframe.value] || '';
@@ -669,6 +781,10 @@ function getCheckedValues(name) {
 }
 
 function setCheckedValues(name, values = []) {
+  if (name === 'ltfEntryLevelTags') {
+    renderEntryLevelOptions(values);
+  }
+
   const set = new Set(values);
   document.querySelectorAll(`input[name="${name}"]`).forEach((input) => {
     input.checked = set.has(input.value);
@@ -686,24 +802,71 @@ function ensureLtfEntryLevelTag(value) {
   if (input) input.checked = true;
 }
 
+function setStrategyRule(title = '', text = '') {
+  if (!strategyRuleCard) return;
+
+  const shouldShow = Boolean(title || text);
+  strategyRuleCard.hidden = !shouldShow;
+
+  if (strategyRuleTitle) strategyRuleTitle.textContent = title || 'Entry model guide';
+  if (strategyRuleText) strategyRuleText.textContent = text || '';
+}
+
 function updateSecondFvgFlow() {
-  const isSecondFvg = getChecked('fvgOrder') === 'Second FVG';
+  const fvgOrder = getChecked('fvgOrder');
+  const isFirstFvg = fvgOrder === 'First FVG';
+  const isSecondFvg = fvgOrder === 'Second FVG';
+  const secondEntryType = getChecked('secondFvgEntryType');
+
   if (secondFvgEntryTypeQuestion) secondFvgEntryTypeQuestion.hidden = !isSecondFvg;
+
+  if (isFirstFvg) {
+    clearChecked('secondFvgEntryType');
+    clearChecked('limitOrderPlacement');
+    if (limitOrderPlacementQuestion) limitOrderPlacementQuestion.hidden = true;
+
+    ensureLtfEntryLevelTag('FVG is in CISD, so FVG sweep entry');
+    ensureLtfEntryLevelTag('Spartan CISD entry');
+    setStrategyRule(
+      'First FVG / Single FVG rule',
+      'Wait for the FVG sweep, then use Spartan CISD entry. Minimum target is 1:4 RR to ERL; if ERL extends cleanly, aim 1:5.'
+    );
+    return;
+  }
 
   if (!isSecondFvg) {
     clearChecked('secondFvgEntryType');
     clearChecked('limitOrderPlacement');
     if (limitOrderPlacementQuestion) limitOrderPlacementQuestion.hidden = true;
+    setStrategyRule();
     return;
   }
 
-  const isMitigationEntry = getChecked('secondFvgEntryType') === 'FVG Mitigation entry';
+  const isMitigationEntry = secondEntryType === 'FVG Mitigation entry';
+  const isSweepEntry = secondEntryType === 'FVG Sweep entry';
+
   if (limitOrderPlacementQuestion) limitOrderPlacementQuestion.hidden = !isMitigationEntry;
 
   if (isMitigationEntry) {
     ensureLtfEntryLevelTag('Breaker Block entry');
+    setStrategyRule(
+      'Second FVG mitigation rule',
+      'Second FVG mitigation entry uses Breaker Block entry. Confirm the breaker block limit order placement before saving.'
+    );
+  } else if (isSweepEntry) {
+    clearChecked('limitOrderPlacement');
+    ensureLtfEntryLevelTag('FVG is in CISD, so FVG sweep entry');
+    ensureLtfEntryLevelTag('Spartan CISD entry');
+    setStrategyRule(
+      'Second FVG sweep rule',
+      'Second FVG sweep entry uses Spartan CISD entry after the sweep. Minimum target is 1:4 RR to ERL; if ERL extends cleanly, aim 1:5.'
+    );
   } else {
     clearChecked('limitOrderPlacement');
+    setStrategyRule(
+      'Second FVG rule',
+      'Choose mitigation or sweep. Mitigation uses Breaker Block entry; sweep uses Spartan CISD entry.'
+    );
   }
 }
 
@@ -1322,9 +1485,9 @@ function resetForm() {
   fields.pair.value = 'EURUSD';
   fields.direction.value = 'Long';
   fields.session.value = 'London';
-  fields.htfTimeframe.value = '15m';
-  fields.risk.value = 50;
-  fields.rr.value = 4;
+  fields.htfTimeframe.value = '1H';
+  fields.risk.value = 25;
+  fields.rr.value = 1;
   setChecked('tradeStatus', 'Took Trade');
   setChecked('entryAttempt', '1st Entry');
   setChecked('fvgStatus', 'Fresh FVG');
@@ -1341,6 +1504,7 @@ function resetForm() {
   setChecked('tradeOutcome', 'BE');
   clearCheckedValues('htfRetracementTags');
   clearCheckedValues('ltfEntryLevelTags');
+  renderEntryLevelOptions([]);
   updateDayAndLtf();
   updateSecondFvgFlow();
   renderChartLinks('htf');
@@ -1574,7 +1738,7 @@ function editTrade(id) {
   fields.pair.value = trade.pair || 'EURUSD';
   fields.direction.value = trade.direction || 'Long';
   fields.session.value = trade.session || 'London';
-  fields.htfTimeframe.value = trade.htfTimeframe || '15m';
+  fields.htfTimeframe.value = trade.htfTimeframe || '1H';
   fields.ltfTimeframe.value = trade.ltfTimeframe || htfToLtf[fields.htfTimeframe.value];
   uploadedImages.htf = trade.htfImageUploadData || '';
   uploadedImages.ltf = trade.ltfImageUploadData || '';
@@ -2004,6 +2168,8 @@ function setupPwaInstallPrompt() {
 }
 
 entryLevelFilter?.addEventListener('change', renderResearch);
+addEntryLevelOptionBtn?.addEventListener('click', addEntryLevelOption);
+deleteEntryLevelOptionBtn?.addEventListener('click', deleteSelectedEntryLevelOptions);
 limitOrderPlacementFilter?.addEventListener('change', renderResearch);
 beLogicFilter?.addEventListener('change', renderResearch);
 sortFilter?.addEventListener('change', renderResearch);

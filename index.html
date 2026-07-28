@@ -247,6 +247,7 @@
               <option value="All">All CISD Types</option>
               <option value="Clean CISD">Clean CISD</option>
               <option value="Messy CISD">Messy CISD</option>
+              <option value="Irregular CISD">Irregular CISD</option>
             </select>
             <select id="fvgLocationFilter">
               <option value="All">All FVG Locations</option>
@@ -271,8 +272,8 @@
             <select id="entryLevelFilter">
               <option value="All">All Entry Levels</option>
               <option value="SL above 5 pips, so 50% of CISD entry">SL above 5 pips, so 50% of CISD entry</option>
+              <option value="Spartan CISD entry">Spartan CISD entry</option>
               <option value="FVG is in CISD, so FVG sweep entry">FVG is in CISD, so FVG sweep entry</option>
-              <option value="FVG is in CISD, so FVG 50% Entry">FVG is in CISD, so FVG 50% Entry</option>
               <option value="CISD level entry">CISD level entry</option>
               <option value="Breaker Block entry">Breaker Block entry</option>
               <option value="Entry adjust to get 4 RR">Entry adjust to get 4 RR</option>
@@ -558,6 +559,12 @@
             </div>
           </div>
 
+          <div id="strategyRuleCard" class="question-card strategy-rule-card" hidden>
+            <p class="question-number">Strategy Rule</p>
+            <h3 id="strategyRuleTitle">Entry model guide</h3>
+            <p id="strategyRuleText" class="rule-copy"></p>
+          </div>
+
           <div id="secondFvgEntryTypeQuestion" class="question-card conditional-question" hidden>
             <p class="question-number">Second FVG Follow-up</p>
             <h3>Which entry is it?</h3>
@@ -603,7 +610,7 @@
           <div class="question-card">
             <p class="question-number">Question 3</p>
             <h3>How is the CISD?</h3>
-            <div class="choice-grid two-choice">
+            <div class="choice-grid three-choice">
               <label class="choice-card image-choice">
                 <input type="radio" name="cisdType" value="Clean CISD" required />
                 <span class="choice-body">
@@ -616,6 +623,13 @@
                 <span class="choice-body">
                   <strong>Messy CISD</strong>
                   <small>Counter candles without proper pullback.</small>
+                </span>
+              </label>
+              <label class="choice-card image-choice">
+                <input type="radio" name="cisdType" value="Irregular CISD" required />
+                <span class="choice-body">
+                  <strong>Irregular CISD</strong>
+                  <small>Structure is not clean or standard.</small>
                 </span>
               </label>
             </div>
@@ -713,17 +727,25 @@
         </div>
 
         <div class="questions-panel">
-          <div class="question-card">
-            <p class="question-number">Question 1</p>
-            <h3>Which entry level was used?</h3>
-            <div class="tag-grid">
-              <label class="tag-choice"><input type="checkbox" name="ltfEntryLevelTags" value="SL above 5 pips, so 50% of CISD entry" /><span>SL above 5 pips, so 50% of CISD entry</span></label>
-              <label class="tag-choice"><input type="checkbox" name="ltfEntryLevelTags" value="FVG is in CISD, so FVG sweep entry" /><span>FVG is in CISD, so FVG sweep entry</span></label>
-              <label class="tag-choice"><input type="checkbox" name="ltfEntryLevelTags" value="FVG is in CISD, so FVG 50% Entry" /><span>FVG is in CISD, so FVG 50% Entry</span></label>
-              <label class="tag-choice"><input type="checkbox" name="ltfEntryLevelTags" value="CISD level entry" /><span>CISD level entry</span></label>
-              <label class="tag-choice"><input type="checkbox" name="ltfEntryLevelTags" value="Breaker Block entry" /><span>Breaker Block entry</span></label>
-              <label class="tag-choice"><input type="checkbox" name="ltfEntryLevelTags" value="Entry adjust to get 4 RR" /><span>Entry adjust to get 4 RR</span></label>
+          <div class="question-card entry-options-card">
+            <div class="question-title-row">
+              <div>
+                <p class="question-number">Question 1</p>
+                <h3>Which entry level was used?</h3>
+              </div>
+              <div class="option-manager-actions">
+                <button id="addEntryLevelOptionBtn" class="small" type="button">+ Add Option</button>
+                <button id="deleteEntryLevelOptionBtn" class="small danger-button" type="button">Delete Selected</button>
+              </div>
             </div>
+            <div id="entryLevelOptionsGrid" class="tag-grid"></div>
+            <small class="field-hint">Add your own entry-level options here. Select an option and press Delete Selected to remove it.</small>
+          </div>
+
+          <div class="question-card rr-rule-card">
+            <p class="question-number">RR Rule</p>
+            <h3>Target rule</h3>
+            <p class="rule-copy">Adjust entry to get minimum <strong>1:4 RR</strong> to ERL. If ERL extends cleanly, aim <strong>1:5 RR</strong>.</p>
           </div>
 
           <div id="limitOrderPlacementQuestion" class="question-card conditional-question" hidden>
@@ -784,11 +806,11 @@
             <div class="grid two outcome-inputs">
               <label>
                 Risk $
-                <input id="risk" type="number" min="0" step="0.01" value="50" />
+                <input id="risk" type="number" min="0" step="0.01" value="25" />
               </label>
               <label>
                 RR
-                <input id="rr" type="number" min="0" step="0.01" value="4" />
+                <input id="rr" type="number" min="0" step="0.01" value="1" />
               </label>
             </div>
           </div>

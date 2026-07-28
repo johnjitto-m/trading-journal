@@ -2,6 +2,16 @@
 
 Professional browser-based trading journal for HTF FVG → CISD → LTF execution tracking.
 
+## v35
+
+- Added strategy-rule guide cards in HTF and LTF.
+- First FVG auto-guides to FVG sweep + Spartan CISD entry.
+- Second FVG mitigation auto-selects Breaker Block entry.
+- Second FVG sweep auto-guides to Spartan CISD entry.
+- Added Spartan CISD entry option.
+- Added RR reminder: minimum 1:4 to ERL, extend ERL for 1:5 when valid.
+- PWA cache updated to v35.
+
 ## v20
 
 - Weekly Journal now keeps same-day trades in saved order: first saved trade stays above, newly saved trades appear below it.
@@ -72,3 +82,13 @@ Files added:
 - Adds conditional LTF question: Where is your limit order placed? Breaker Block mitigation / Breaker Block sweep.
 - Adds these fields to save/edit/view/delete/CSV/research filters.
 - PWA cache updated to v32.
+
+
+## v37
+- Added Add Option / Delete Selected controls for LTF entry-level options.
+- Custom entry-level options are saved in browser storage and included in the research filter.
+- PWA cache updated to v37.
+
+
+## v37
+- Evergreen-style visual polish: wider screen layout, cleaner colors, refined typography, compact weekly journal table, and premium dark-green theme.
