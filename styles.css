@@ -2734,3 +2734,72 @@ textarea,
   max-width: 100%;
   margin-inline: auto;
 }
+
+/* v40 — hard fix weekly result/actions overlap */
+.dashboard-log-panel .table-wrap {
+  overflow-x: auto;
+  overflow-y: auto;
+}
+
+.dashboard-log-panel table {
+  width: 100%;
+  min-width: 1180px;
+  table-layout: auto;
+  border-collapse: collapse;
+}
+
+.dashboard-log-panel th,
+.dashboard-log-panel td {
+  box-sizing: border-box;
+  vertical-align: middle;
+}
+
+.dashboard-log-panel th:nth-child(9),
+.dashboard-log-panel td:nth-child(9) {
+  width: 82px;
+  min-width: 82px;
+  max-width: 82px;
+  text-align: center;
+  padding-left: 0.65rem;
+  padding-right: 0.65rem;
+  overflow: visible;
+}
+
+.dashboard-log-panel th:nth-child(10),
+.dashboard-log-panel td:nth-child(10) {
+  width: 270px;
+  min-width: 270px;
+  max-width: 270px;
+  text-align: left;
+  padding-left: 1.35rem;
+  padding-right: 1rem;
+  overflow: visible;
+}
+
+.dashboard-log-panel .actions-cell {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 0.55rem;
+  white-space: nowrap;
+  min-width: 270px;
+}
+
+.dashboard-log-panel .actions-cell .small {
+  flex: 0 0 auto;
+  min-width: 56px;
+  text-align: center;
+}
+
+.dashboard-log-panel .result-pill {
+  position: relative;
+  z-index: 0;
+  max-width: 72px;
+  margin-inline: auto;
+}
+
+@media (min-width: 1500px) {
+  .dashboard-log-panel table {
+    min-width: 1280px;
+  }
+}
