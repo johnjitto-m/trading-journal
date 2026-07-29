@@ -1609,78 +1609,140 @@ function buildTradeDetails(trade, pnl) {
   const tradeOutcome = getDisplayResult(trade);
   const isSecondFvg = fvgOrder === 'Second FVG';
   const isMitigationEntry = secondFvgEntry === 'FVG Mitigation entry';
+  const summaryPills = [
+    reviewPill(trade.direction || '-', `direction ${String(trade.direction || '').toLowerCase()}`),
+    reviewPill(normalizeTradeStatus(trade.tradeStatus), `status ${getTradeStatusClass(trade)}`),
+    reviewPill(tradeOutcome, `result ${getResultClass(tradeOutcome)}`),
+  ].join('');
 
   return `
-    <section class="details-overview-grid">
-      ${detailMetric('Status', `<span class="status-badge status-${getTradeStatusClass(trade)}">${escapeHtml(normalizeTradeStatus(trade.tradeStatus))}</span>`, true)}
-      ${detailMetric('Entry Attempt', `<span class="entry-badge entry-${getEntryAttemptShort(trade).toLowerCase()}">${escapeHtml(normalizeEntryAttempt(trade.entryAttempt))}</span>`, true)}
-      ${detailMetric('FVG Status', normalizeFvgStatus(trade.fvgStatus))}
-      ${detailMetric('CISD Support', normalizeCisdStatus(trade.cisdStatus))}
-      ${detailMetric('Result', `<span class="result-pill result-${getResultClass(tradeOutcome)}">${escapeHtml(tradeOutcome)}</span>`, true)}
-      ${detailMetric('Risk', `$${Number(trade.risk || 0).toFixed(2)}`)}
-      ${detailMetric('RR', `${Number(trade.rr || 0).toFixed(2)}R`)}
-      ${detailMetric('P/L', `<span class="${pnl >= 0 ? 'pnl-positive' : 'pnl-negative'}">${money(pnl)}</span>`, true)}
-    </section>
-
-    <section class="details-section details-full-width">
-      <div class="details-section-head">
-        <p class="section-kicker">Complete Selected Options</p>
-        <h3>Step 1 — Basic Info</h3>
+    <section class="trade-review-summary review-panel review-panel-wide">
+      <div class="trade-review-heading">
+        <p class="section-kicker">Basic Details</p>
+        <h3>${escapeHtml(`${trade.pair || '-'} · ${formatDateDMY(trade.date)} · ${trade.day || getDayName(trade.date)}`)}</h3>
       </div>
-      <div class="details-grid complete-details-grid">
-        ${detailItem('Date', formatDateDMY(trade.date))}
-        ${detailItem('Day', trade.day || getDayName(trade.date))}
-        ${detailItem('Pair', trade.pair || '-')}
-        ${detailItem('Direction', trade.direction || '-')}
-        ${detailItem('Session', trade.session || '-')}
-        ${detailItem('Timeframes', `${trade.htfTimeframe || '-'} → ${trade.ltfTimeframe || '-'}`)}
-        ${detailItem('Trade Status — Did you take this setup?', normalizeTradeStatus(trade.tradeStatus))}
-        ${detailItem('Entry Attempt — Which entry is this?', normalizeEntryAttempt(trade.entryAttempt))}
-        ${detailItem('FVG Status — Is this FVG new or partial?', normalizeFvgStatus(trade.fvgStatus))}
-        ${detailItem('CISD Status — Is this CISD supported by?', normalizeCisdStatus(trade.cisdStatus))}
+      <div class="trade-review-pills">${summaryPills}</div>
+      <div class="trade-review-summary-grid">
+        ${reviewSummaryItem('Date', `${formatDateDMY(trade.date)} · ${trade.day || getDayName(trade.date)}`)}
+        ${reviewSummaryItem('Pair', trade.pair || '-')}
+        ${reviewSummaryItem('Session', trade.session || '-')}
+        ${reviewSummaryItem('HTF / LTF', `${trade.htfTimeframe || '-'} / ${trade.ltfTimeframe || '-'}`)}
+        ${reviewSummaryItem('Entry Attempt', normalizeEntryAttempt(trade.entryAttempt))}
+        ${reviewSummaryItem('FVG Status', normalizeFvgStatus(trade.fvgStatus))}
+        ${reviewSummaryItem('CISD Support', normalizeCisdStatus(trade.cisdStatus))}
+        ${reviewSummaryItem('Risk / RR', `$${Number(trade.risk || 0).toFixed(2)} / ${Number(trade.rr || 0).toFixed(2)}R`)}
+        ${reviewSummaryItem('P/L', `<span class="${pnl >= 0 ? 'pnl-positive' : 'pnl-negative'}">${money(pnl)}</span>`, true)}
       </div>
     </section>
 
-    <section class="details-section">
-      <div class="details-section-head">
-        <p class="section-kicker">HTF Analysis</p>
-        <h3>Every Selected HTF Option</h3>
+    <section class="trade-review-layout">
+      <div class="trade-review-column charts-column">
+        ${buildReviewChartPanel('Chart References', 'HTF mitigation chart', trade.htfImageUploadData || '', htfLinks, ['current mitigation', 'htf mitigation', 'mitigation'])}
+        ${buildReviewChartPanel('Chart References', 'LTF TP / SL / BE chart', trade.ltfImageUploadData || '', ltfLinks, ['sl tp', 'tp', 'be', 'mitigation', 'setup'])}
       </div>
-      <div class="details-grid">
-        ${detailItem('Q1 — Is this the first FVG or second FVG?', fvgOrder)}
-        ${detailItem('Second FVG follow-up — Which entry is it?', isSecondFvg ? (secondFvgEntry || '-') : 'Not applicable')}
-        ${detailItem('FVG created third candle is?', trade.fvgThirdCandle || '-')}
-        ${detailItem('How is the CISD?', trade.cisdType || '-')}
-        ${detailItem('Where is the FVG?', trade.fvgLocation || '-')}
-        ${detailItem('FVG mitigation / retracement / entry behavior', renderTagList(htfRetracementTags), true)}
-      </div>
-      ${trade.htfNotes ? `<div class="details-note"><span>HTF Notes</span><p>${escapeHtml(trade.htfNotes)}</p></div>` : ''}
-    </section>
 
-    <section class="details-section">
-      <div class="details-section-head">
-        <p class="section-kicker">LTF Analysis</p>
-        <h3>Every Selected LTF Option</h3>
+      <div class="trade-review-column htf-column">
+        <section class="review-panel review-analysis-panel htf-review-panel">
+          <div class="review-panel-head">
+            <div>
+              <p class="section-kicker">HTF Analysis</p>
+              <h3>FVG POI Checklist</h3>
+            </div>
+          </div>
+          <div class="review-answer-grid review-answer-grid-htf">
+            ${reviewAnswerCard('Question 1', 'Is this the first FVG or second FVG?', fvgOrder)}
+            ${reviewAnswerCard('Question 2', 'FVG created third candle is?', trade.fvgThirdCandle || '-')}
+            ${reviewAnswerCard('Question 3', 'How is the CISD?', trade.cisdType || '-')}
+            ${reviewAnswerCard('Question 4', 'Where is the FVG?', trade.fvgLocation || '-')}
+            ${reviewAnswerCard('Question 5', 'Second FVG follow-up — Which entry is it?', isSecondFvg ? (secondFvgEntry || '-') : 'Not applicable')}
+            ${reviewAnswerCard('Question 6', 'FVG mitigation / retracement / entry behavior', renderTagList(htfRetracementTags), true)}
+            ${reviewAnswerCard('Basic Info', 'FVG status — is this FVG new or partial?', normalizeFvgStatus(trade.fvgStatus))}
+            ${reviewAnswerCard('Basic Info', 'CISD status — is this CISD supported by?', normalizeCisdStatus(trade.cisdStatus))}
+          </div>
+          ${trade.htfNotes ? `<div class="review-note"><span>HTF Notes</span><p>${escapeHtml(trade.htfNotes)}</p></div>` : ''}
+        </section>
       </div>
-      <div class="details-grid">
-        ${detailItem('Q1 — Which entry level was used?', renderTagList(entryLevelTags), true)}
-        ${detailItem('Breaker Block follow-up — Where is your limit order placed?', isMitigationEntry ? (limitOrderPlacement || '-') : 'Not applicable')}
-        ${detailItem('Q2 — What was the BE logic?', trade.beLogic || '-')}
-        ${detailItem('Q3 — Trade outcome', tradeOutcome)}
-        ${detailItem('Risk $', `$${Number(trade.risk || 0).toFixed(2)}`)}
-        ${detailItem('RR', `${Number(trade.rr || 0).toFixed(2)}R`)}
-        ${detailItem('P/L', `<span class="${pnl >= 0 ? 'pnl-positive' : 'pnl-negative'}">${money(pnl)}</span>`, true)}
-      </div>
-      ${trade.notes ? `<div class="details-note"><span>LTF / Trade Notes</span><p>${escapeHtml(trade.notes)}</p></div>` : ''}
-    </section>
 
-    <section class="details-section">
-      <div class="details-section-head">
-        <p class="section-kicker">Chart References</p>
-        <h3>Saved Links</h3>
+      <div class="trade-review-column ltf-column">
+        <section class="review-panel review-analysis-panel ltf-review-panel">
+          <div class="review-panel-head">
+            <div>
+              <p class="section-kicker">LTF Analysis</p>
+              <h3>Execution Checklist</h3>
+            </div>
+          </div>
+          <div class="review-answer-grid review-answer-grid-ltf">
+            ${reviewAnswerCard('Question 1', 'Which entry level was used?', renderTagList(entryLevelTags), true)}
+            ${reviewAnswerCard('Follow-up', 'Breaker Block follow-up — Where is your limit order placed?', isMitigationEntry ? (limitOrderPlacement || '-') : 'Not applicable')}
+            ${reviewAnswerCard('Question 2', 'What was the BE logic?', trade.beLogic || '-')}
+            ${reviewAnswerCard('Question 3', 'Trade outcome', tradeOutcome)}
+            ${reviewAnswerCard('Trade', 'Risk / RR', `$${Number(trade.risk || 0).toFixed(2)} / ${Number(trade.rr || 0).toFixed(2)}R`)}
+            ${reviewAnswerCard('Trade', 'P/L', `<span class="${pnl >= 0 ? 'pnl-positive' : 'pnl-negative'}">${money(pnl)}</span>`, true)}
+          </div>
+          ${trade.notes ? `<div class="review-note"><span>LTF / Trade Notes</span><p>${escapeHtml(trade.notes)}</p></div>` : ''}
+        </section>
       </div>
-      ${renderDetailChartLinks('HTF Chart Links', htfLinks)}
-      ${renderDetailChartLinks('LTF Chart Links', ltfLinks)}
+    </section>
+  `;
+}
+
+function reviewSummaryItem(label, value, raw = false) {
+  return `<article class="review-summary-item"><span>${escapeHtml(label)}</span><strong>${raw ? value : escapeHtml(value)}</strong></article>`;
+}
+
+function reviewPill(text, variant = '') {
+  return `<span class="review-status-pill ${escapeHtml(variant).trim()}">${escapeHtml(text || '-')}</span>`;
+}
+
+function reviewAnswerCard(kicker, question, value, raw = false) {
+  return `
+    <article class="review-answer-card">
+      <span class="review-answer-kicker">${escapeHtml(kicker)}</span>
+      <h4>${escapeHtml(question)}</h4>
+      <div class="review-answer-value">${raw ? value : escapeHtml(value)}</div>
+    </article>
+  `;
+}
+
+function selectPrimaryChartLink(links = [], preferredTerms = []) {
+  const wanted = preferredTerms.map((item) => String(item || '').toLowerCase()).filter(Boolean);
+  return links.find((item) => {
+    const text = `${item.label || ''} ${item.url || ''}`.toLowerCase();
+    return wanted.some((term) => text.includes(term));
+  }) || links[0] || null;
+}
+
+function renderReviewLinkChips(links = []) {
+  if (!links.length) return '<div class="review-link-empty">No links saved.</div>';
+  return `
+    <div class="review-link-chip-row">
+      ${links.slice(0, 4).map((item, index) => `
+        <a class="review-link-chip" href="${escapeAttribute(item.url)}" target="_blank" rel="noreferrer">
+          <span>${escapeHtml(item.label || `Chart ${index + 1}`)}</span>
+          <small>Open ↗</small>
+        </a>
+      `).join('')}
+    </div>
+  `;
+}
+
+function buildReviewChartPanel(kicker, title, imageSrc = '', links = [], preferredTerms = []) {
+  const primaryLink = selectPrimaryChartLink(links, preferredTerms);
+  const countLabel = `${links.length} ${links.length === 1 ? 'link' : 'links'}`;
+  return `
+    <section class="review-panel review-chart-panel">
+      <div class="review-panel-head">
+        <div>
+          <p class="section-kicker">${escapeHtml(kicker)}</p>
+          <h3>${escapeHtml(title)}</h3>
+        </div>
+        <span class="review-link-count">${escapeHtml(countLabel)}</span>
+      </div>
+      <div class="review-chart-frame ${imageSrc ? 'has-image' : 'is-empty'}">
+        ${imageSrc ? `<img src="${escapeAttribute(imageSrc)}" alt="${escapeAttribute(title)}" />` : `<div class="review-chart-placeholder">No chart preview saved yet.</div>`}
+        ${primaryLink ? `<a class="review-chart-open" href="${escapeAttribute(primaryLink.url)}" target="_blank" rel="noreferrer">Open full preview ↗</a>` : ''}
+      </div>
+      ${renderReviewLinkChips(links)}
     </section>
   `;
 }

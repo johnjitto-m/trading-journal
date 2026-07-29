@@ -2889,3 +2889,411 @@ textarea,
 .trade-entry-shell::-webkit-scrollbar-thumb:hover {
   background: rgba(99, 241, 181, 0.78);
 }
+
+/* v42 evergreen-style trade review modal */
+.details-card {
+  width: min(1580px, 95vw);
+  height: min(860px, 90vh);
+}
+
+.details-body {
+  display: block;
+  overflow: auto;
+  padding: 0.95rem 1rem 1rem;
+}
+
+.trade-review-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.85rem 1rem;
+  padding: 0.95rem 1rem;
+  margin-bottom: 0.95rem;
+}
+
+.trade-review-heading h3 {
+  margin: 0.2rem 0 0;
+  font-size: 1.55rem;
+  letter-spacing: -0.03em;
+}
+
+.trade-review-pills {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.review-status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2rem;
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  border: 1px solid rgba(92, 126, 173, 0.36);
+  background: rgba(10, 18, 34, 0.92);
+  color: #e5edf8;
+}
+
+.review-status-pill.direction.long {
+  color: #86efac;
+  border-color: rgba(34, 197, 94, 0.28);
+  background: rgba(20, 83, 45, 0.2);
+}
+
+.review-status-pill.direction.short {
+  color: #fca5a5;
+  border-color: rgba(244, 63, 94, 0.28);
+  background: rgba(127, 29, 29, 0.18);
+}
+
+.review-status-pill.status.took,
+.review-status-pill.status-took {
+  color: #86efac;
+  border-color: rgba(34, 197, 94, 0.28);
+  background: rgba(20, 83, 45, 0.2);
+}
+
+.review-status-pill.status.missed,
+.review-status-pill.status-missed {
+  color: #facc15;
+  border-color: rgba(250, 204, 21, 0.25);
+  background: rgba(120, 53, 15, 0.18);
+}
+
+.review-status-pill.status.not-taken,
+.review-status-pill.status-not-taken {
+  color: #c4b5fd;
+  border-color: rgba(167, 139, 250, 0.26);
+  background: rgba(76, 29, 149, 0.16);
+}
+
+.review-status-pill.result.tp {
+  color: #86efac;
+  border-color: rgba(34, 197, 94, 0.28);
+  background: rgba(20, 83, 45, 0.2);
+}
+
+.review-status-pill.result.sl {
+  color: #fca5a5;
+  border-color: rgba(244, 63, 94, 0.28);
+  background: rgba(127, 29, 29, 0.18);
+}
+
+.review-status-pill.result.be,
+.review-status-pill.result.neutral {
+  color: #fde68a;
+  border-color: rgba(250, 204, 21, 0.24);
+  background: rgba(120, 53, 15, 0.18);
+}
+
+.trade-review-summary-grid {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.review-summary-item {
+  border: 1px solid rgba(80, 112, 154, 0.28);
+  border-radius: 0.95rem;
+  background: linear-gradient(180deg, rgba(11, 21, 39, 0.92), rgba(8, 16, 31, 0.92));
+  padding: 0.72rem 0.82rem;
+  min-width: 0;
+}
+
+.review-summary-item span {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: #9fb1c9;
+  margin-bottom: 0.38rem;
+}
+
+.review-summary-item strong {
+  display: block;
+  font-size: 0.98rem;
+  line-height: 1.3;
+  color: #f8fafc;
+}
+
+.trade-review-layout {
+  display: grid;
+  grid-template-columns: minmax(300px, 0.92fr) minmax(420px, 1.28fr) minmax(320px, 0.94fr);
+  gap: 0.95rem;
+  align-items: start;
+}
+
+.trade-review-column {
+  min-width: 0;
+  display: grid;
+  gap: 0.95rem;
+}
+
+.review-panel {
+  border: 1px solid rgba(80, 112, 154, 0.28);
+  border-radius: 1rem;
+  background: linear-gradient(180deg, rgba(10, 19, 37, 0.96), rgba(7, 14, 27, 0.96));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+  padding: 0.85rem;
+}
+
+.review-panel-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.8rem;
+  margin-bottom: 0.75rem;
+}
+
+.review-panel-head h3 {
+  margin: 0.18rem 0 0;
+  font-size: 1.45rem;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+}
+
+.review-link-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 1.5rem;
+  padding: 0.15rem 0.52rem;
+  border-radius: 999px;
+  border: 1px solid rgba(92, 126, 173, 0.32);
+  color: #9fb1c9;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.review-chart-frame {
+  position: relative;
+  border-radius: 1rem;
+  overflow: hidden;
+  border: 1px solid rgba(80, 112, 154, 0.26);
+  background: linear-gradient(180deg, rgba(8, 15, 28, 0.96), rgba(6, 11, 22, 0.96));
+  min-height: 220px;
+  aspect-ratio: 16 / 10;
+}
+
+.review-chart-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  background: #f8fafc;
+}
+
+.review-chart-placeholder {
+  height: 100%;
+  min-height: 220px;
+  display: grid;
+  place-items: center;
+  color: #8fa1bd;
+  font-weight: 600;
+  padding: 1rem;
+  text-align: center;
+}
+
+.review-chart-open {
+  position: absolute;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  background: rgba(8, 15, 28, 0.9);
+  border: 1px solid rgba(80, 112, 154, 0.34);
+  color: #f8fafc;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.review-link-chip-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.review-link-chip,
+.review-link-empty {
+  border-radius: 0.85rem;
+  border: 1px solid rgba(80, 112, 154, 0.28);
+  background: linear-gradient(180deg, rgba(13, 26, 45, 0.92), rgba(7, 16, 30, 0.92));
+  padding: 0.58rem 0.72rem;
+}
+
+.review-link-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+  color: #dbe7f7;
+}
+
+.review-link-chip span {
+  font-weight: 700;
+}
+
+.review-link-chip small,
+.review-link-empty {
+  color: #8fa1bd;
+}
+
+.review-answer-grid {
+  display: grid;
+  gap: 0.72rem;
+}
+
+.review-answer-grid-htf {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.review-answer-grid-ltf {
+  grid-template-columns: 1fr;
+}
+
+.review-answer-card {
+  border: 1px solid rgba(80, 112, 154, 0.26);
+  border-radius: 0.95rem;
+  background: linear-gradient(180deg, rgba(11, 21, 39, 0.96), rgba(7, 15, 29, 0.96));
+  padding: 0.78rem 0.82rem;
+  min-width: 0;
+}
+
+.review-answer-kicker {
+  display: block;
+  margin-bottom: 0.3rem;
+  color: var(--accent);
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
+.review-answer-card h4 {
+  margin: 0;
+  color: #ecf3fd;
+  font-size: 1rem;
+  line-height: 1.3;
+}
+
+.review-answer-value {
+  margin-top: 0.65rem;
+  min-height: 2.85rem;
+  display: flex;
+  align-items: center;
+  border-radius: 0.8rem;
+  border: 1px solid rgba(34, 197, 94, 0.55);
+  background: linear-gradient(180deg, rgba(11, 46, 33, 0.42), rgba(8, 32, 25, 0.32));
+  color: #d8ffe6;
+  font-weight: 700;
+  padding: 0.6rem 0.75rem;
+  line-height: 1.35;
+}
+
+.review-answer-value .detail-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.review-answer-value .detail-tags span {
+  border-radius: 999px;
+  border: 1px solid rgba(34, 197, 94, 0.38);
+  background: rgba(20, 83, 45, 0.18);
+  padding: 0.24rem 0.58rem;
+}
+
+.review-note {
+  margin-top: 0.78rem;
+  border-radius: 0.95rem;
+  border: 1px solid rgba(80, 112, 154, 0.26);
+  background: rgba(8, 16, 31, 0.82);
+  padding: 0.8rem 0.9rem;
+}
+
+.review-note span {
+  display: block;
+  margin-bottom: 0.38rem;
+  color: var(--accent);
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
+.review-note p {
+  margin: 0;
+  color: #dbe7f7;
+  line-height: 1.5;
+}
+
+@media (max-width: 1460px) {
+  .trade-review-summary-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .trade-review-layout {
+    grid-template-columns: minmax(280px, 0.95fr) minmax(360px, 1.1fr) minmax(300px, 0.92fr);
+  }
+}
+
+@media (max-width: 1180px) {
+  .details-card {
+    width: min(1200px, 96vw);
+    height: 92vh;
+  }
+
+  .trade-review-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .trade-review-pills {
+    justify-content: flex-start;
+  }
+
+  .trade-review-summary-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .trade-review-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .review-answer-grid-htf,
+  .review-answer-grid-ltf {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .details-card {
+    width: 96vw;
+    height: 94vh;
+  }
+
+  .trade-review-summary-grid,
+  .review-answer-grid-htf,
+  .review-answer-grid-ltf {
+    grid-template-columns: 1fr;
+  }
+
+  .review-panel-head,
+  .trade-review-heading {
+    align-items: flex-start;
+  }
+
+  .trade-review-heading h3,
+  .review-panel-head h3 {
+    font-size: 1.2rem;
+  }
+}
