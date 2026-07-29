@@ -2674,26 +2674,35 @@ textarea,
 .dashboard-log-panel th:nth-child(2),
 .dashboard-log-panel td:nth-child(2) { width: 12%; }
 .dashboard-log-panel th:nth-child(3),
-.dashboard-log-panel td:nth-child(3) { width: 11%; }
+.dashboard-log-panel td:nth-child(3) { width: 10%; }
 .dashboard-log-panel th:nth-child(4),
-.dashboard-log-panel td:nth-child(4) { width: 10%; }
+.dashboard-log-panel td:nth-child(4) { width: 9%; }
 .dashboard-log-panel th:nth-child(5),
-.dashboard-log-panel td:nth-child(5) { width: 12%; }
+.dashboard-log-panel td:nth-child(5) { width: 11%; }
 .dashboard-log-panel th:nth-child(6),
 .dashboard-log-panel td:nth-child(6) { width: 7%; }
 .dashboard-log-panel th:nth-child(7),
 .dashboard-log-panel td:nth-child(7) { width: 13%; }
 .dashboard-log-panel th:nth-child(8),
-.dashboard-log-panel td:nth-child(8) { width: 13%; }
+.dashboard-log-panel td:nth-child(8) { width: 12%; }
 .dashboard-log-panel th:nth-child(9),
-.dashboard-log-panel td:nth-child(9) { width: 8%; text-align: center; }
+.dashboard-log-panel td:nth-child(9) { width: 7%; text-align: center; }
 .dashboard-log-panel th:nth-child(10),
-.dashboard-log-panel td:nth-child(10) { width: 10%; text-align: right; }
+.dashboard-log-panel td:nth-child(10) { width: 15%; text-align: right; }
 
 .dashboard-log-panel .actions-cell {
+  display: flex;
   justify-content: flex-end;
   align-items: center;
+  gap: 0.45rem;
   white-space: nowrap;
+  min-width: 0;
+}
+
+.dashboard-log-panel .actions-cell .small {
+  flex: 0 0 auto;
+  padding-left: 0.72rem;
+  padding-right: 0.72rem;
 }
 
 .dashboard-log-panel .date-cell,
@@ -2711,4 +2720,17 @@ textarea,
 @media (max-width: 980px) {
   .dashboard-log-panel .table-wrap { overflow-x: auto; }
   .dashboard-log-panel table { min-width: 980px; }
+}
+
+
+/* v39 — keep result pill and action buttons in separate lanes */
+.dashboard-log-panel td:nth-child(9) {
+  overflow: hidden;
+}
+.dashboard-log-panel td:nth-child(10) {
+  overflow: visible;
+}
+.dashboard-log-panel td:nth-child(9) .result-pill {
+  max-width: 100%;
+  margin-inline: auto;
 }

@@ -94,8 +94,8 @@ Files added:
 - Evergreen-style visual polish: wider screen layout, cleaner colors, refined typography, compact weekly journal table, and premium dark-green theme.
 
 
-## v38
+## v39
 
 - Adjusted homepage weekly table to Evergreen-style full-width alignment.
 - Actions column now sits closer to the right side instead of leaving empty space.
-- PWA cache updated to v38.
+- PWA cache updated to v39.
