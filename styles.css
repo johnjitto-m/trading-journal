@@ -2803,3 +2803,89 @@ textarea,
     min-width: 1280px;
   }
 }
+
+
+/* v41 — slim elegant scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(99, 241, 181, 0.42) rgba(15, 23, 42, 0.28);
+}
+
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.28);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(45, 212, 139, 0.68), rgba(56, 189, 248, 0.34));
+  border: 2px solid rgba(2, 6, 23, 0.72);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(74, 222, 128, 0.9), rgba(45, 212, 191, 0.55));
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+.dashboard-log-panel .table-wrap,
+.research-table-panel .table-wrap,
+.modal-workspace,
+.chart-panel,
+.questions-panel,
+.details-body,
+.trade-entry-shell {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(99, 241, 181, 0.5) rgba(15, 23, 42, 0.18);
+}
+
+.dashboard-log-panel .table-wrap::-webkit-scrollbar,
+.research-table-panel .table-wrap::-webkit-scrollbar,
+.modal-workspace::-webkit-scrollbar,
+.chart-panel::-webkit-scrollbar,
+.questions-panel::-webkit-scrollbar,
+.details-body::-webkit-scrollbar,
+.trade-entry-shell::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.dashboard-log-panel .table-wrap::-webkit-scrollbar-track,
+.research-table-panel .table-wrap::-webkit-scrollbar-track,
+.modal-workspace::-webkit-scrollbar-track,
+.chart-panel::-webkit-scrollbar-track,
+.questions-panel::-webkit-scrollbar-track,
+.details-body::-webkit-scrollbar-track,
+.trade-entry-shell::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.16);
+  border-radius: 999px;
+}
+
+.dashboard-log-panel .table-wrap::-webkit-scrollbar-thumb,
+.research-table-panel .table-wrap::-webkit-scrollbar-thumb,
+.modal-workspace::-webkit-scrollbar-thumb,
+.chart-panel::-webkit-scrollbar-thumb,
+.questions-panel::-webkit-scrollbar-thumb,
+.details-body::-webkit-scrollbar-thumb,
+.trade-entry-shell::-webkit-scrollbar-thumb {
+  background: rgba(99, 241, 181, 0.45);
+  border: 1px solid rgba(2, 6, 23, 0.78);
+  border-radius: 999px;
+}
+
+.dashboard-log-panel .table-wrap::-webkit-scrollbar-thumb:hover,
+.research-table-panel .table-wrap::-webkit-scrollbar-thumb:hover,
+.modal-workspace::-webkit-scrollbar-thumb:hover,
+.chart-panel::-webkit-scrollbar-thumb:hover,
+.questions-panel::-webkit-scrollbar-thumb:hover,
+.details-body::-webkit-scrollbar-thumb:hover,
+.trade-entry-shell::-webkit-scrollbar-thumb:hover {
+  background: rgba(99, 241, 181, 0.78);
+}
